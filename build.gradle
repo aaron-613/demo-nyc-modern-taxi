@@ -28,7 +28,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 
     implementation group: 'com.solacesystems', name: 'sol-jcsmp', version: '10.9.0'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.11.0'
+    implementation group: 'com.google.code.gson', name: 'gson', verion: '2.8.6'
 
 }
 

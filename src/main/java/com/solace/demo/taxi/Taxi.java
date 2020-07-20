@@ -46,7 +46,6 @@ public class Taxi implements Runnable {
 	final int routeNum;
 	int positionIndex;  // which 'tick' along the route is this?
 	final int vehicleNum;
-	Direction direction = Direction.FORWARD;
     Status status = Status.OK;
 
     // each Bus should be listening on their topics: comm/route/012, comm/bus/1234, comm/broadcast
