@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.Logger;
+
 import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.Destination;
 import com.solacesystems.jcsmp.JCSMPChannelProperties;
@@ -14,9 +16,8 @@ import com.solacesystems.jcsmp.JCSMPProducerEventHandler;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPReconnectEventHandler;
 import com.solacesystems.jcsmp.JCSMPSession;
-import com.solacesystems.jcsmp.JCSMPStreamingPublishEventHandler;
+import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.ProducerEventArgs;
-import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageConsumer;
 import com.solacesystems.jcsmp.XMLMessageListener;
 import com.solacesystems.jcsmp.XMLMessageProducer;
@@ -37,13 +38,8 @@ public class GpsGenerator {
     XMLMessageConsumer consumer = null;
     volatile boolean connected = false;
     
-    BusTracker busTracker = new BusTracker();
-    TaxiTracker taxiTracker = new TaxiTracker();
     ScheduledExecutorService service = Executors.newScheduledThreadPool(20);
-    
-    //public static Broadcaster INSTANCE;
-    public static Topic TOPIC_BROADCAST = JCSMPFactory.onlyInstance().createTopic("comms/broadcast");
-    public static Topic TOPIC_DISPATCH = JCSMPFactory.onlyInstance().createTopic("comms/dispatch");
+    private static final Logger logger = LogManager.getLogger(GpsGenerator.class);
 
     public static void initializeSingletonBroadcaster(String host, String vpn, String user, String pw) {
     	if (INSTANCE != null) throw new AssertionError();
@@ -123,19 +119,30 @@ public class GpsGenerator {
         session.setProperty(JCSMPProperties.CLIENT_NAME,"gpsgen_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
         try {
 	        try {
-	            producer = session.getMessageProducer(new JCSMPStreamingPublishEventHandler() {
+	            producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
 	                
 	                @Override
 	                public void responseReceived(String messageID) {
-	                	// won't since we're only sending Direct messages
-	                	System.out.println("prodcer response received");
+	                	// never called, Ex version instead
 	                }
 	                
 	                @Override
 	                public void handleError(String messageID, JCSMPException cause, long timestamp) {
+	                	// never called, Ex version instead
+	                }
+
+					@Override
+					public void responseReceivedEx(Object key) {
+	                	// won't since we're only sending Direct messages
+	                	System.out.println("prodcer response received");
+					}
+
+					@Override
+					public void handleErrorEx(Object key, JCSMPException cause, long timestamp) {
 	                	// shouldn't get a publisher error (NACK), but may have exceptions thrown for connectivity
 	                	System.err.println("Producer handleError() got something: "+cause.toString());
-	                }
+					}
+
 	            }, new JCSMPProducerEventHandler() {
 					@Override
 					public void handleEvent(ProducerEventArgs event) {
@@ -184,42 +191,13 @@ public class GpsGenerator {
 	                	
 	                	System.out.println(topic);
 	                	
-	                	if (topic.startsWith("comms/")) {
-	                		if (topic.equals(TOPIC_DISPATCH.getName())) {  // this one is meant for me, command and control
-	                			// or maybe the map display... I dunno
-	                			
-	                		} else if (message.getDestination().equals(TOPIC_BROADCAST)) {
-	                			// need to tell every bus that something has happened
-	                			for (Bus bus : busTracker.buses) {
-	                				bus.receiveMessage(message);
-	                			}
-	                		} else if (topic.startsWith("comms/route/")) {
-	                			int routeNum = Integer.parseInt(topic.split("\\/")[2]);
-	                			for (Bus bus : busTracker.busByRoute.get(routeNum)) {
-	                				bus.receiveMessage(message);
-	                			}
-	                		} else if (topic.startsWith("comms/bus/")) {
-	                			int busNum = Integer.parseInt(topic.split("\\/")[2]);
-	                			busTracker.getBus(busNum).receiveMessage(message);
-	                		} else {
-	                			// have no idea what other kind of comms message I'd receive
-	                			
-	                		}
+	                	if (topic.startsWith("taxinyc/ops/ride/called/v1/")) {
+	                		// someone is calling a ride
+	                	} else if (topic.startsWith(".../")) {
 	                		
-	                		
-	                		
-	                		
-	                	} else if (topic.startsWith("ctrl/")) {
-                			int busNum = Integer.parseInt(topic.split("\\/")[2]);
-                			String action = topic.split("\\/")[3];
-                			if (action.equals("start")) {
-                				busTracker.getBus(busNum).startBus();
-                			} else if (action.equals("stop")) {
-                				busTracker.getBus(busNum).stopBus();
-                			} 
 	                	}
-	                	
-	                	
+	                	///taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${rider_id}/${current_longitude}/${current_latitude}
+
 	                }
 	                
 	                @Override
@@ -230,8 +208,7 @@ public class GpsGenerator {
 	            });
 	            System.out.println("Sending \"GPS\" data now...");
 	            connected = true;
-	            session.addSubscription(JCSMPFactory.onlyInstance().createTopic("ctrl/>"),true);
-	            session.addSubscription(JCSMPFactory.onlyInstance().createTopic("comms/>"),true);
+	            session.addSubscription(JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/called/>"),true);
 	            consumer.start();
 	        } catch (JCSMPException e) {
 	        	// should only throw an exception during start up (from this thread)... otherwise the exception
