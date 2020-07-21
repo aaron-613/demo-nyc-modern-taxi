@@ -15,9 +15,9 @@ public class RouteLoader {
         final int passengerCount;
         final float meterIncrement;
         final List<Float> meterAmount;
-        final List<Point2D.Double> coords;  // lat=x, lon=y
+        final List<Point2D.Float> coords;  // lat=x, lon=y
         
-        private Route(int passengerCount, float meterIncrement, List<Float> meterAmount, List<Point2D.Double> coords) {
+        private Route(int passengerCount, float meterIncrement, List<Float> meterAmount, List<Point2D.Float> coords) {
             this.passengerCount = passengerCount;
             this.meterIncrement = meterIncrement;
             this.meterAmount = meterAmount;
@@ -35,11 +35,11 @@ public class RouteLoader {
         return routes.get(routeNum);
     }
     
-    public List<Point2D.Double> getRouteCoords(int routeNum) {
+    public List<Point2D.Float> getRouteCoords(int routeNum) {
         return routes.get(routeNum).coords;
     }
     
-    public Point2D.Double getCoord(int routeNum, int routeIndex) {
+    public Point2D.Float getCoord(int routeNum, int routeIndex) {
         return routes.get(routeNum).coords.get(routeIndex);
     }
     
@@ -53,13 +53,13 @@ public class RouteLoader {
         float meterIncrement = Float.parseFloat(fields[1]);
         String[] textCoords = fields[2].split(";");
         List<Float> meterAmount = new ArrayList<>();
-        List<Point2D.Double> coords = new ArrayList<>();
+        List<Point2D.Float> coords = new ArrayList<>();
         for (String triple : textCoords) {
             String[] amountlatlon = triple.split(",");
             meterAmount.add(Float.parseFloat(amountlatlon[0]));
-            double lat = Double.parseDouble(amountlatlon[1]);
-            double lon = Double.parseDouble(amountlatlon[2]);
-            coords.add(new Point2D.Double(lat,lon));  // x=lat, y=lon
+            float lat = Float.parseFloat(amountlatlon[1]);
+            float lon = Float.parseFloat(amountlatlon[2]);
+            coords.add(new Point2D.Float(lat,lon));  // x=lat, y=lon
         }
         Route route = new Route(passengerCount,meterIncrement,meterAmount,coords);
         return route;
