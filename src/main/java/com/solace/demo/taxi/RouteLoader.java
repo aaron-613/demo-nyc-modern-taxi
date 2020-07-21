@@ -11,12 +11,12 @@ import java.util.List;
 public class RouteLoader {
 
     public class Route {
-    	
-    	final int passengerCount;
-    	final float meterIncrement;
-    	final List<Float> meterAmount;
+        
+        final int passengerCount;
+        final float meterIncrement;
+        final List<Float> meterAmount;
         final List<Point2D.Double> coords;  // lat=x, lon=y
-    	
+        
         private Route(int passengerCount, float meterIncrement, List<Float> meterAmount, List<Point2D.Double> coords) {
             this.passengerCount = passengerCount;
             this.meterIncrement = meterIncrement;
@@ -85,37 +85,37 @@ public class RouteLoader {
     
     
     public static void main(String... args) throws FileNotFoundException, IOException {
-    	RouteLoader rl = new RouteLoader();
-    	rl.load("coords_00.txt");
-    	System.out.println(rl.getNumRoutes());
-    	
-    	
-    	
-    	float test = 123.456f;
-    	System.out.println(test);
-    	test = 173.4567f;
-    	System.out.println(test);
-    	test = 173.45670f;
-    	System.out.println(test);
-    	test = 173.45671f;
-    	System.out.println(test);
-    	test = 173.45672f;
-    	System.out.println(test);
-    	test = 173.45673f;
-    	System.out.println(test);
-    	test = 173.45674f;
-    	System.out.println(test);
-    	test = 173.45675f;
-    	System.out.println(test);
-    	test = 173.45676f;
-    	System.out.println(test);
-    	test = 173.45677f;
-    	System.out.println(test);
-    	test = 173.45678f;
-    	System.out.println(test);
-    	test = 173.45679f;
-    	System.out.println(test);
-    	
+        RouteLoader rl = new RouteLoader();
+        rl.load("coords_00.txt");
+        System.out.println(rl.getNumRoutes());
+        
+        
+        
+        float test = 123.456f;
+        System.out.println(test);
+        test = 173.4567f;
+        System.out.println(test);
+        test = 173.45670f;
+        System.out.println(test);
+        test = 173.45671f;
+        System.out.println(test);
+        test = 173.45672f;
+        System.out.println(test);
+        test = 173.45673f;
+        System.out.println(test);
+        test = 173.45674f;
+        System.out.println(test);
+        test = 173.45675f;
+        System.out.println(test);
+        test = 173.45676f;
+        System.out.println(test);
+        test = 173.45677f;
+        System.out.println(test);
+        test = 173.45678f;
+        System.out.println(test);
+        test = 173.45679f;
+        System.out.println(test);
+        
     }
 
 }

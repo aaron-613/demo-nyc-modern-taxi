@@ -25,8 +25,8 @@ import com.solacesystems.jcsmp.XMLMessageProducer;
 
 public class GpsGenerator {
 
-	private static GpsGenerator INSTANCE = null;
-	
+    private static GpsGenerator INSTANCE = null;
+    
     public final static int GPS_UPDATE_RATE_MS = 5000;
     
     final String host;
@@ -43,13 +43,13 @@ public class GpsGenerator {
     private static final Logger logger = LogManager.getLogger(GpsGenerator.class);
 
     public static void initializeSingletonBroadcaster(String host, String vpn, String user, String pw) {
-    	if (INSTANCE != null) throw new AssertionError();
-    	else INSTANCE = new GpsGenerator(host,vpn,user,pw);
+        if (INSTANCE != null) throw new AssertionError();
+        else INSTANCE = new GpsGenerator(host,vpn,user,pw);
     }
     
     public static GpsGenerator onlyInstance() {
-    	if (INSTANCE == null) throw new AssertionError("Instance hasn't been initialized!");
-    	else return INSTANCE;
+        if (INSTANCE == null) throw new AssertionError("Instance hasn't been initialized!");
+        else return INSTANCE;
     }
     
     private GpsGenerator(String host, String vpn, String user, String pw) {
@@ -63,15 +63,15 @@ public class GpsGenerator {
     void sendMessage(BytesXMLMessage message, Destination dest) {
         //System.out.println("sending to "+topic+" -- "+message.dump());
         if (4.4 > 3.3) {
-	        try {
-	        	//Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
-	        	if (connected) producer.send(message,dest);
-	        	else {
-//	        		System.out.println("not connected, can't send");
-	        	}
-	        } catch (JCSMPException e) {
-	        	System.out.println("Had an issue sending a message");
-	        }
+            try {
+                //Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
+                if (connected) producer.send(message,dest);
+                else {
+//                    System.out.println("not connected, can't send");
+                }
+            } catch (JCSMPException e) {
+                System.out.println("Had an issue sending a message");
+            }
         }
     }
     
@@ -82,23 +82,23 @@ public class GpsGenerator {
     
     void addRandomBus(int number) {
         for (int i=0;i<number;i++) {
-        	Bus bus = busTracker.addRandomBus();
+            Bus bus = busTracker.addRandomBus();
             service.scheduleAtFixedRate(bus,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
 //            System.out.println("added a bus");
         }
     }
     
     void addBues() {
-    	busTracker.initBuses();
-    	for (Bus bus : busTracker.buses) {
+        busTracker.initBuses();
+        for (Bus bus : busTracker.buses) {
             service.scheduleAtFixedRate(bus,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
         }
-    	System.out.println(busTracker.buses.size()+" buses added.");
+        System.out.println(busTracker.buses.size()+" buses added.");
     }
     
     void addRandomTaxi(int number) {
         for (int i=0;i<number;i++) {
-        	Taxi taxi = taxiTracker.addRandomTaxi();
+            Taxi taxi = taxiTracker.addRandomTaxi();
             service.scheduleAtFixedRate(taxi,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
 //            System.out.println("added a taxi");
         }
@@ -119,105 +119,105 @@ public class GpsGenerator {
         session.connect();
         session.setProperty(JCSMPProperties.CLIENT_NAME,"gpsgen_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
         try {
-	        try {
-	            producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
-	                
-	                @Override
-	                public void responseReceived(String messageID) {
-	                	// never called, Ex version instead
-	                }
-	                
-	                @Override
-	                public void handleError(String messageID, JCSMPException cause, long timestamp) {
-	                	// never called, Ex version instead
-	                }
+            try {
+                producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
+                    
+                    @Override
+                    public void responseReceived(String messageID) {
+                        // never called, Ex version instead
+                    }
+                    
+                    @Override
+                    public void handleError(String messageID, JCSMPException cause, long timestamp) {
+                        // never called, Ex version instead
+                    }
 
-					@Override
-					public void responseReceivedEx(Object key) {
-	                	// won't since we're only sending Direct messages
-	                	System.out.println("prodcer response received");
-					}
+                    @Override
+                    public void responseReceivedEx(Object key) {
+                        // won't since we're only sending Direct messages
+                        System.out.println("prodcer response received");
+                    }
 
-					@Override
-					public void handleErrorEx(Object key, JCSMPException cause, long timestamp) {
-	                	// shouldn't get a publisher error (NACK), but may have exceptions thrown for connectivity
-	                	System.err.println("Producer handleError() got something: "+cause.toString());
-					}
+                    @Override
+                    public void handleErrorEx(Object key, JCSMPException cause, long timestamp) {
+                        // shouldn't get a publisher error (NACK), but may have exceptions thrown for connectivity
+                        System.err.println("Producer handleError() got something: "+cause.toString());
+                    }
 
-	            }, new JCSMPProducerEventHandler() {
-					@Override
-					public void handleEvent(ProducerEventArgs event) {
-	                	System.err.println("Producer EVENT handler got something: "+event.toString());
-						
-					}
-				});
-	            consumer = session.getMessageConsumer(new JCSMPReconnectEventHandler() {
-	                
-	                @Override
-	                public boolean preReconnect() throws JCSMPException {
-	                	System.out.println("RECONNECTING...");
-	                	connected = false;
-	                    return true;
-	                }
-	                
-	                @Override
-	                public void postReconnect() throws JCSMPException {
-	                	System.out.println("RECONNECTED!");
-	                    connected = true;
-	                }
-	            }, new XMLMessageListener() {
-	                @Override
-	                public void onReceive(BytesXMLMessage message) {
-	                	System.out.println("HERE");
-	                	System.out.println(message.dump());
-	                    /* this is where you will add a switch/case statement to call various methods to
-	                     *  a) add n more random cars
-	                     *  b) add a user car
-	                     *  c) fault a user car
-	                     *  etc.
-	                     *      geo/bus/vehNum/lat/lon/routeNum/status
-	                     *      geo/taxi/vehNum/lat/lon/status
-	                     *      geo/train/vehNum/lat/lon/routeNum
-	                			comms/bus/1234
-	                			comms/route/012
-	                			comms/broadcast
-	                			comms/dispatch
-							    ctrl/bus/vehNum/stop
-							    ctrl/bus/vehNum/start
-							    ctrl/bus/vehNum/flat
-							    ctrl/bus/vehNum/crash
-							    ctrl/bus/vehNum/fix
-	                     */
-	                	String topic = message.getDestination().getName();
-	                	
-	                	System.out.println(topic);
-	                	
-	                	if (topic.startsWith("taxinyc/ops/ride/called/v1/")) {
-	                		// someone is calling a ride
-	                	} else if (topic.startsWith(".../")) {
-	                		
-	                	}
-	                	///taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${rider_id}/${current_longitude}/${current_latitude}
+                }, new JCSMPProducerEventHandler() {
+                    @Override
+                    public void handleEvent(ProducerEventArgs event) {
+                        System.err.println("Producer EVENT handler got something: "+event.toString());
+                        
+                    }
+                });
+                consumer = session.getMessageConsumer(new JCSMPReconnectEventHandler() {
+                    
+                    @Override
+                    public boolean preReconnect() throws JCSMPException {
+                        System.out.println("RECONNECTING...");
+                        connected = false;
+                        return true;
+                    }
+                    
+                    @Override
+                    public void postReconnect() throws JCSMPException {
+                        System.out.println("RECONNECTED!");
+                        connected = true;
+                    }
+                }, new XMLMessageListener() {
+                    @Override
+                    public void onReceive(BytesXMLMessage message) {
+                        System.out.println("HERE");
+                        System.out.println(message.dump());
+                        /* this is where you will add a switch/case statement to call various methods to
+                         *  a) add n more random cars
+                         *  b) add a user car
+                         *  c) fault a user car
+                         *  etc.
+                         *      geo/bus/vehNum/lat/lon/routeNum/status
+                         *      geo/taxi/vehNum/lat/lon/status
+                         *      geo/train/vehNum/lat/lon/routeNum
+                                comms/bus/1234
+                                comms/route/012
+                                comms/broadcast
+                                comms/dispatch
+                                ctrl/bus/vehNum/stop
+                                ctrl/bus/vehNum/start
+                                ctrl/bus/vehNum/flat
+                                ctrl/bus/vehNum/crash
+                                ctrl/bus/vehNum/fix
+                         */
+                        String topic = message.getDestination().getName();
+                        
+                        System.out.println(topic);
+                        
+                        if (topic.startsWith("taxinyc/ops/ride/called/v1/")) {
+                            // someone is calling a ride
+                        } else if (topic.startsWith(".../")) {
+                            
+                        }
+                        ///taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${rider_id}/${current_longitude}/${current_latitude}
 
-	                }
-	                
-	                @Override
-	                public void onException(JCSMPException exception) {
-	                	System.out.println("EXCEPTION");
-	                    // won't happen as all Direct messages
-	                }
-	            });
-	            System.out.println("Sending \"GPS\" data now...");
-	            connected = true;
-	            session.addSubscription(JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/called/>"),true);
-	            consumer.start();
-	        } catch (JCSMPException e) {
-	        	// should only throw an exception during start up (from this thread)... otherwise the exception
-	        	// will be thrown and caught by other processes
-	        	System.err.println("GpsGenerator: I have had an exception thrown to be at the outside");
-	        	System.err.println(Thread.currentThread().getName());
-	            e.printStackTrace();
-	        }
+                    }
+                    
+                    @Override
+                    public void onException(JCSMPException exception) {
+                        System.out.println("EXCEPTION");
+                        // won't happen as all Direct messages
+                    }
+                });
+                System.out.println("Sending \"GPS\" data now...");
+                connected = true;
+                session.addSubscription(JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/called/>"),true);
+                consumer.start();
+            } catch (JCSMPException e) {
+                // should only throw an exception during start up (from this thread)... otherwise the exception
+                // will be thrown and caught by other processes
+                System.err.println("GpsGenerator: I have had an exception thrown to be at the outside");
+                System.err.println(Thread.currentThread().getName());
+                e.printStackTrace();
+            }
             while (true) {
                 Thread.sleep(100000);
             }
