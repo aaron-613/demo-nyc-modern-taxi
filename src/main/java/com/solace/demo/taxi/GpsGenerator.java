@@ -283,7 +283,7 @@ public enum GpsGenerator {
 
         INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
         INSTANCE.loadRoutes();
-        INSTANCE.createInitialRides(100);
+        INSTANCE.createInitialRides(1);
         INSTANCE.run();
     }
 }

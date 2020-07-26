@@ -1,12 +1,18 @@
 package com.solace.demo.taxi;
 
 import java.awt.geom.Point2D;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
+import javax.json.stream.JsonGenerator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -160,18 +166,16 @@ public class Ride implements Runnable {
                 .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
                 .add("ride_status",rideStatus)
                 .add("passenger_count",route.passengerCount);
-        return job.build().toString();
-        
-        /*        StringWriter writer = new StringWriter();
+//        return job.build().toString();
+        // how about pretty print instead??
+        StringWriter writer = new StringWriter();
         Map<String, Object> properties = new HashMap<>();
         properties.put(JsonGenerator.PRETTY_PRINTING, true);
         JsonWriterFactory writerFactory = Json.createWriterFactory(properties);
         JsonWriter jsonWriter = writerFactory.createWriter(writer);
         jsonWriter.writeObject(job.build());
         jsonWriter.close();
-        
-        */        
-        
+        return writer.toString();
     }
     
     
