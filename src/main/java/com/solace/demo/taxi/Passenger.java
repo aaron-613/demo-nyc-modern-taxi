@@ -10,17 +10,38 @@ public class Passenger {
     }
     
     private final String id;
+    private final String firstName = "John";
+    private final String lastName = "Doe";
     private Status status;
     private String routeId;
     
     
-    public Passenger(String id) {
-        this.id = id;
+    private Passenger() {
+        id = ""+(int)(Math.random()*100_000_000);
+        
     }
     
     
+    public static Passenger newPassenger() {
+        return new Passenger();
+    }
     
+    public String getId() {
+        return id;
+    }
     
+    public String getName() {
+        return firstName + " " + lastName;
+    }
+    
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
     
     
 }

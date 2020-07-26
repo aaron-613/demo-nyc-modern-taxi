@@ -17,7 +17,7 @@ public enum RouteLoader {
         final int passengerCount;
         final float meterIncrement;
         final List<Float> meterAmount;
-        final List<Point2D.Float> coords;  // lat=x, lon=y
+        final List<Point2D.Float> coords;  // lon=x, lat=y
         
         private Route(int passengerCount, float meterIncrement, List<Float> meterAmount, List<Point2D.Float> coords) {
             this.passengerCount = passengerCount;
@@ -26,7 +26,7 @@ public enum RouteLoader {
             this.coords = coords;
         }
     }
-    // End Route class ////////////////////////////////////////////////////////////
+    // End inner Route class ////////////////////////////////////////////////////////////
 
     
     List<Route> routes = new ArrayList<Route>();
@@ -51,7 +51,7 @@ public enum RouteLoader {
     ///////////////////////////////////
     
     // int passenger count | float meter_increment | [float meter_reading, float lat, float lon];
-    Route parseRawRouteText(String routeTextLine) {
+    private Route parseRawRouteText(String routeTextLine) {
         String[] fields = routeTextLine.split("\\|");
         int passengerCount = Integer.parseInt(fields[0]);
         float meterIncrement = Float.parseFloat(fields[1]);
@@ -63,7 +63,7 @@ public enum RouteLoader {
             meterAmount.add(Float.parseFloat(amountlatlon[0]));
             float lat = Float.parseFloat(amountlatlon[1]);
             float lon = Float.parseFloat(amountlatlon[2]);
-            coords.add(new Point2D.Float(lat,lon));  // x=lat, y=lon
+            coords.add(new Point2D.Float(lon,lat));  // x=lon, y=lat
         }
         Route route = new Route(passengerCount,meterIncrement,meterAmount,coords);
         return route;
