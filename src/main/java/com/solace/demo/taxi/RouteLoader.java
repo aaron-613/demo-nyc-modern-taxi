@@ -15,7 +15,7 @@ public enum RouteLoader {
     public class Route {
         
         final int passengerCount;
-        final float meterIncrement;
+        final double meterIncrement;
         final List<Float> meterAmount;
         final List<Point2D.Float> coords;  // lon=x, lat=y
         

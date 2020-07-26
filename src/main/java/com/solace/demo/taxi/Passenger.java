@@ -42,6 +42,10 @@ public class Passenger {
         return lastName;
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
     
     
 }

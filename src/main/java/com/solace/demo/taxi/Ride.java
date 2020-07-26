@@ -1,7 +1,12 @@
 package com.solace.demo.taxi;
 
 import java.awt.geom.Point2D;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
@@ -14,6 +19,8 @@ public class Ride {
         FINISHED;
     }
     
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+
     private final String rideId;
     private final Driver driver;
     private final Passenger passenger;
@@ -79,8 +86,9 @@ public class Ride {
             break;
         case EN_ROUTE:
             routePositionIndex++;
-            if (route.coords.size() == routePositionIndex) {  // the end!
+            if (routePositionIndex == route.coords.size()-1) {  // the end!
                 rideStatus = "dropoff";
+                status = Status.FINISHED;
             } else {
                 rideStatus = "enroute";
             }
@@ -101,16 +109,38 @@ public class Ride {
                 .append(String.format("%010.5f",point.x)).append('/')
                 .append(String.format("%09.5f",point.y));
         
-        
+        System.out.println(topicSb.toString());
+        System.out.println(getPayload(rideStatus));
     }
     
     
     
-    public String getPayload() {
-        // {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00","meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
+    public String getPayload(String rideStatus) {
+        // {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00",...
+        //      "meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
+        JsonObjectBuilder job = Json.createObjectBuilder();
+        Point2D.Float point = route.coords.get(routePositionIndex);
         
+        job.add("ride_id",rideId)
+                .add("point_idx",routePositionIndex)
+                .add("latitude",Math.round(point.y*1000000)/1000000.0)
+                .add("longitude",Math.round(point.x*1000000)/1000000.0)
+                .add("timestamp",LocalDateTime.now().format(FORMATTER))
+                .add("meter_reading",Math.round(route.meterAmount.get(routePositionIndex)*100)/100.0)
+                .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
+                .add("ride_status",rideStatus)
+                .add("passenger_count",route.passengerCount);
+        return job.build().toString();
         
+        /*        StringWriter writer = new StringWriter();
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(JsonGenerator.PRETTY_PRINTING, true);
+        JsonWriterFactory writerFactory = Json.createWriterFactory(properties);
+        JsonWriter jsonWriter = writerFactory.createWriter(writer);
+        jsonWriter.writeObject(job.build());
+        jsonWriter.close();
         
+        */        
         
     }
     
@@ -118,7 +148,7 @@ public class Ride {
 
     @Override
     public String toString() {
-        return String.format("%s: %s driving %s on route %d at %s",rideId,driver,passenger,routeNum,getCoord());
+        return String.format("RideId %s: %s driving %s on route %d at %s",rideId,driver,passenger,routeNum,getCoord());
     }
     
     

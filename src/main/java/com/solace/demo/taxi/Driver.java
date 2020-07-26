@@ -39,6 +39,11 @@ public class Driver {
         return id;
     }
 
+    
+    public String getName() {
+        return firstName + " " + lastName;
+    }
+    
     public String getFirstName() {
         return firstName;
     }

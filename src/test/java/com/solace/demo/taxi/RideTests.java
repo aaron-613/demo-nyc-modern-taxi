@@ -11,7 +11,7 @@ import org.junit.Test;
 public class RideTests {
     @Test
     public void testNewRides() throws FileNotFoundException, IOException {
-        RouteLoader.INSTANCE.load("coords_00.txt");
+        RouteLoader.INSTANCE.load("coords_01.txt");
         System.out.println(Ride.newRide());
         System.out.println(Ride.newRide());
         System.out.println(Ride.newRide());
@@ -21,6 +21,21 @@ public class RideTests {
         System.out.println(Ride.newRide());
         System.out.println(Ride.newRide());
     
+        Ride ride = Ride.newRide();
+        
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        ride.tick();
+        while (ride.getStatus() == Ride.Status.EN_ROUTE) {
+            ride.tick();
+        }
     }
     
     
