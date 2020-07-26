@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RouteLoader {
+public enum RouteLoader {
 
+    INSTANCE;
+    
     public class Route {
         
         final int passengerCount;
@@ -24,7 +26,9 @@ public class RouteLoader {
             this.coords = coords;
         }
     }
+    // End Route class ////////////////////////////////////////////////////////////
 
+    
     List<Route> routes = new ArrayList<Route>();
 
     public int getNumRoutes() {
@@ -85,36 +89,21 @@ public class RouteLoader {
     
     
     public static void main(String... args) throws FileNotFoundException, IOException {
-        RouteLoader rl = new RouteLoader();
-        rl.load("coords_00.txt");
-        System.out.println(rl.getNumRoutes());
+        //RouteLoader rl = new RouteLoader();
         
         
         
-        float test = 123.456f;
-        System.out.println(test);
-        test = 173.4567f;
-        System.out.println(test);
-        test = 173.45670f;
-        System.out.println(test);
-        test = 173.45671f;
-        System.out.println(test);
-        test = 173.45672f;
-        System.out.println(test);
-        test = 173.45673f;
-        System.out.println(test);
-        test = 173.45674f;
-        System.out.println(test);
-        test = 173.45675f;
-        System.out.println(test);
-        test = 173.45676f;
-        System.out.println(test);
-        test = 173.45677f;
-        System.out.println(test);
-        test = 173.45678f;
-        System.out.println(test);
-        test = 173.45679f;
-        System.out.println(test);
+        INSTANCE.load("coords_00.txt");
+        System.out.println(INSTANCE.getNumRoutes());
+        
+        
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        
         
     }
 

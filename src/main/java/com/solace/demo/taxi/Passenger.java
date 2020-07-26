@@ -1,6 +1,6 @@
 package com.solace.demo.taxi;
 
-public class Rider {
+public class Passenger {
 
     public enum Status {
         IDLE,
@@ -14,7 +14,7 @@ public class Rider {
     private String routeId;
     
     
-    public Rider(String id) {
+    public Passenger(String id) {
         this.id = id;
     }
     

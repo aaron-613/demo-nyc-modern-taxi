@@ -24,7 +24,7 @@ public class Taxi implements Runnable {
     static final int ROUTE_PADDING = 3;  // 000-999
     static final int VEH_NUM_PADDING = 4; // 1000-9999
     
-    static RouteLoader taxiLoader = new RouteLoader();
+    static RouteLoader taxiLoauder = new RouteLoader();
     static {
         String filename = "coords2.txt";
         try {
