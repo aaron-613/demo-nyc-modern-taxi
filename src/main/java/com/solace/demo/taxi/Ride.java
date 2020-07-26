@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
@@ -11,7 +12,7 @@ import javax.json.JsonObjectBuilder;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
 
-public class Ride {
+public class Ride implements Runnable {
 
     enum Status {
         NOT_STARTED,
@@ -28,6 +29,7 @@ public class Ride {
     private final RouteLoader.Route route;
     private Status status = Status.NOT_STARTED;
     private int routePositionIndex = 0;
+    private ScheduledFuture<?> future = null;
     
     private Ride() {
         rideId = UUID.randomUUID().toString();
@@ -39,6 +41,23 @@ public class Ride {
     
     public static Ride newRide() {
         return new Ride();
+    }
+    
+    /**
+     * Starts somewhere in the middle of the ride
+     * @return
+     */
+    public static Ride randomRide() {
+        Ride ride = new Ride();
+        if (ride.route.coords.size() < 5) return ride;
+        // else...
+        ride.routePositionIndex = 2 + (int)(Math.round(Math.random()*(ride.route.coords.size()-4)));
+        ride.status = Status.EN_ROUTE;
+        return ride;
+    }
+    
+    public void setFuture(ScheduledFuture<?> future) {
+        this.future = future;
     }
 
     public Driver getDriver() {
@@ -70,8 +89,13 @@ public class Ride {
     }
     
     
+    @Override
+    public void run() {
+        tick();
+    }
     
     public void tick() {
+        System.out.println("tick");
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
         /*
          * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":0,"latitude":40.78754,"longitude":-73.97467,"timestamp":"2020-06-04T20:35:15.19397-04:00","meter_reading":0,"meter_increment":0.036538463,"ride_status":"pickup","passenger_count":1}
@@ -93,8 +117,16 @@ public class Ride {
                 rideStatus = "enroute";
             }
             break;
-        case FINISHED:  // why are we even here?
+        case FINISHED:  // we are done now
         default:
+            if (future == null) {
+                System.err.println("Somehow this Runnable is running, but we're cancelled!");
+                System.err.println(this);
+            } else {
+                future.cancel(false);
+                GpsGenerator.INSTANCE.removeRide(this);
+                GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
+            }
             return;
         }
         // topic = taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
@@ -109,8 +141,11 @@ public class Ride {
                 .append(String.format("%010.5f",point.x)).append('/')
                 .append(String.format("%09.5f",point.y));
         
-        System.out.println(topicSb.toString());
-        System.out.println(getPayload(rideStatus));
+        String topic = topicSb.toString();
+        String payload = getPayload(rideStatus);
+        msg.setText(payload);
+        GpsGenerator.INSTANCE.sendMessage(msg,topic);
+
     }
     
     
@@ -125,6 +160,8 @@ public class Ride {
                 .add("point_idx",routePositionIndex)
                 .add("latitude",Math.round(point.y*1000000)/1000000.0)
                 .add("longitude",Math.round(point.x*1000000)/1000000.0)
+/* optional */  .add("heading",VehicleUtils.calcHeading(routeNum,routePositionIndex))
+/* optional */  .add("speed",VehicleUtils.calcSpeed(routeNum,routePositionIndex))
                 .add("timestamp",LocalDateTime.now().format(FORMATTER))
                 .add("meter_reading",Math.round(route.meterAmount.get(routePositionIndex)*100)/100.0)
                 .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
@@ -150,8 +187,6 @@ public class Ride {
     public String toString() {
         return String.format("RideId %s: %s driving %s on route %d at %s",rideId,driver,passenger,routeNum,getCoord());
     }
-    
-    
-    
+
     
 }

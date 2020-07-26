@@ -1,15 +1,19 @@
 package com.solace.demo.taxi;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.solacesystems.jcsmp.BytesXMLMessage;
-import com.solacesystems.jcsmp.Destination;
 import com.solacesystems.jcsmp.JCSMPChannelProperties;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
@@ -23,49 +27,51 @@ import com.solacesystems.jcsmp.XMLMessageConsumer;
 import com.solacesystems.jcsmp.XMLMessageListener;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 
-public class GpsGenerator {
+public enum GpsGenerator {
 
-    private static GpsGenerator INSTANCE = null;
+    INSTANCE;
     
-    public final static int GPS_UPDATE_RATE_MS = 5000;
+    public final static int GPS_UPDATE_RATE_MS = 500;  // every 2 seconds
+    public final static String COORDS_FILENAME = "coords_01.txt";
     
-    final String host;
-    final String vpn;
-    final String user;
-    final String pw;
+    private String host;
+    private String vpn;
+    private String user;
+    private String pw;
 
     JCSMPSession session = null;
     XMLMessageProducer producer = null;
     XMLMessageConsumer consumer = null;
     volatile boolean connected = false;
     
-    ScheduledExecutorService service = Executors.newScheduledThreadPool(20);
+    private final ScheduledExecutorService service;
+    private final List<Ride> rides = new ArrayList<>();
+    
     private static final Logger logger = LogManager.getLogger(GpsGenerator.class);
-
-    public static void initializeSingletonBroadcaster(String host, String vpn, String user, String pw) {
-        if (INSTANCE != null) throw new AssertionError();
-        else INSTANCE = new GpsGenerator(host,vpn,user,pw);
+    
+    private GpsGenerator() {
+        //service = Executors.newScheduledThreadPool(20);
+        ScheduledThreadPoolExecutor service = new ScheduledThreadPoolExecutor(20);
+        service.setRemoveOnCancelPolicy(true);
+        service.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        this.service = service;
     }
     
-    public static GpsGenerator onlyInstance() {
-        if (INSTANCE == null) throw new AssertionError("Instance hasn't been initialized!");
-        else return INSTANCE;
+    public void initializeSingletonBroadcaster(String host, String vpn, String user, String pw) { 
+        INSTANCE.host = host;
+        INSTANCE.vpn = vpn;
+        INSTANCE.user = user;
+        INSTANCE.pw = pw;
     }
     
-    private GpsGenerator(String host, String vpn, String user, String pw) {
-        this.host = host;
-        this.vpn = vpn;
-        this.user = user;
-        this.pw = pw;
-      //  INSTANCE = this;  // terrible coding!
-    }
-    
-    void sendMessage(BytesXMLMessage message, Destination dest) {
-        //System.out.println("sending to "+topic+" -- "+message.dump());
+    void sendMessage(BytesXMLMessage message, String topic) {
         if (4.4 > 3.3) {
             try {
                 //Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
-                if (connected) producer.send(message,dest);
+                if (connected) {
+                    System.out.println("sending to "+topic+" -- "+message.dump());
+                    producer.send(message,JCSMPFactory.onlyInstance().createTopic(topic));
+                }
                 else {
 //                    System.out.println("not connected, can't send");
                 }
@@ -79,7 +85,39 @@ public class GpsGenerator {
     
     /////////////////////////////////// USER INTERACTION PARTS
 
+    void loadRoutes() throws FileNotFoundException, IOException {
+        RouteLoader.INSTANCE.load(COORDS_FILENAME);
+    }
     
+    void createDrivers(int number) {
+        // todo later
+    }
+
+    void createPassengers(int number) {
+        // todo later
+    }
+    
+    void createInitialRides(int number) {
+        for (int i=0;i<number;i++) {
+            Ride ride = Ride.randomRide();
+            rides.add(ride);
+            ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
+            ride.setFuture(future);
+        }
+    }
+    
+    void removeRide(Ride ride) {
+        rides.remove(ride);
+    }
+
+    void addNewRide() {
+        Ride ride = Ride.newRide();
+        rides.add(ride);
+        ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
+        ride.setFuture(future);
+    }
+    
+    /*
     void addRandomBus(int number) {
         for (int i=0;i<number;i++) {
             Bus bus = busTracker.addRandomBus();
@@ -103,7 +141,7 @@ public class GpsGenerator {
 //            System.out.println("added a taxi");
         }
     }
-    
+*/    
 
     void run() throws JCSMPException {
         System.out.println("About to create GpsGenerator session.");
@@ -114,10 +152,11 @@ public class GpsGenerator {
         properties.setProperty(JCSMPProperties.PASSWORD,pw);
         JCSMPChannelProperties cp = new JCSMPChannelProperties();
         cp.setReconnectRetries(-1);
+        cp.setCompressionLevel(9);  // disable if not using compressed port
         properties.setProperty(JCSMPProperties.CLIENT_CHANNEL_PROPERTIES,cp);
         session = JCSMPFactory.onlyInstance().createSession(properties);
         session.connect();
-        session.setProperty(JCSMPProperties.CLIENT_NAME,"gpsgen_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
+        session.setProperty(JCSMPProperties.CLIENT_NAME,"TaxiPub_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
         try {
             try {
                 producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
@@ -232,7 +271,7 @@ public class GpsGenerator {
     }
 
 
-    public static void main(String... args) throws FileNotFoundException, JCSMPException {
+    public static void main(String... args) throws JCSMPException, IOException {
         if (args.length < 3) {
             System.out.println("Not enough args");
             System.out.println("Usage: GpsGenerator <IP or hostname> <vpn> <user> [password]");
@@ -243,10 +282,9 @@ public class GpsGenerator {
         String user = args[2];
         String pw = args.length > 3 ? args[3] : "";
 
-  
-        initializeSingletonBroadcaster(host, vpn, user, pw);
-        onlyInstance().addBues();
-        //onlyInstance().addRandomTaxi(1000);
-        onlyInstance().run();
+        INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
+        INSTANCE.loadRoutes();
+        INSTANCE.createInitialRides(1);
+        INSTANCE.run();
     }
 }
