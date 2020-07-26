@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,7 +71,23 @@ public enum RouteLoader {
     }
 
     void load(String filename) throws FileNotFoundException, IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(getClass().getClassLoader().getResource(filename).getFile()));
+        BufferedReader reader = null;
+        try {
+            //reader = new BufferedReader(new FileReader(getClass().getClassLoader().getResource(filename).getFile()));
+            reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(filename)));
+        } catch (NullPointerException e) {
+            System.out.println("weird");
+            System.out.println(filename);
+            System.out.println(getClass());
+            System.out.println(getClass().getClassLoader());
+            System.out.println(getClass().getClassLoader().getResource(filename));
+//            System.out.println(getClass().getClassLoader().getResource(filename).getFile());
+            System.out.println(getClass().getResourceAsStream(filename));
+            
+            
+            System.out.println("throwing..!");
+            throw e;
+        }
         String line = null;
         try {
             while ((line = reader.readLine()) != null) {
@@ -93,7 +110,7 @@ public enum RouteLoader {
         
         
         
-        INSTANCE.load("coords_00.txt");
+        INSTANCE.load("/coords_00.txt");
         System.out.println(INSTANCE.getNumRoutes());
         
         

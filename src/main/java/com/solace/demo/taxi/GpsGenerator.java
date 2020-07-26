@@ -31,7 +31,7 @@ public enum GpsGenerator {
     INSTANCE;
     
     public final static int GPS_UPDATE_RATE_MS = 2000;  // every 2 seconds
-    public final static String COORDS_FILENAME = "coords_00.txt";
+    public final static String COORDS_FILENAME = "/coords_00.txt";
     
     private String host;
     private String vpn;
@@ -283,7 +283,7 @@ public enum GpsGenerator {
 
         INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
         INSTANCE.loadRoutes();
-        INSTANCE.createInitialRides(1000);
+        INSTANCE.createInitialRides(100);
         INSTANCE.run();
     }
 }

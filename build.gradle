@@ -22,7 +22,8 @@ repositories {
 
 dependencies {
     // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
+    //testImplementation 'junit:junit:4.12'
+    implementation 'junit:junit:4.12'
 
     implementation group: 'com.solacesystems', name: 'sol-jcsmp', version: '10.9.0'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
@@ -33,7 +34,16 @@ dependencies {
 
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+            exclude '**/Taxi.java'
+       }
+   }
+}
+
 application {
     // Define the main class for the application.
-    mainClassName = 'com.solace.demo.taxi.App'
+    mainClassName = 'com.solace.demo.taxi.GpsGenerator'
 }
