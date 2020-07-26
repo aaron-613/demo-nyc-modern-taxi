@@ -2,9 +2,8 @@ package com.solace.demo.taxi;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -31,8 +30,8 @@ public enum GpsGenerator {
 
     INSTANCE;
     
-    public final static int GPS_UPDATE_RATE_MS = 500;  // every 2 seconds
-    public final static String COORDS_FILENAME = "coords_01.txt";
+    public final static int GPS_UPDATE_RATE_MS = 2000;  // every 2 seconds
+    public final static String COORDS_FILENAME = "coords_00.txt";
     
     private String host;
     private String vpn;
@@ -45,7 +44,7 @@ public enum GpsGenerator {
     volatile boolean connected = false;
     
     private final ScheduledExecutorService service;
-    private final List<Ride> rides = new ArrayList<>();
+    private final Map<Ride,ScheduledFuture<?>> rides = new HashMap<>();
     
     private static final Logger logger = LogManager.getLogger(GpsGenerator.class);
     
@@ -69,7 +68,7 @@ public enum GpsGenerator {
             try {
                 //Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
                 if (connected) {
-                    System.out.println("sending to "+topic+" -- "+message.dump());
+                    logger.debug("sending to "+topic+" -- "+message.dump());
                     producer.send(message,JCSMPFactory.onlyInstance().createTopic(topic));
                 }
                 else {
@@ -100,21 +99,21 @@ public enum GpsGenerator {
     void createInitialRides(int number) {
         for (int i=0;i<number;i++) {
             Ride ride = Ride.randomRide();
-            rides.add(ride);
             ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
-            ride.setFuture(future);
+            rides.put(ride,future);
+            logger.info("Created "+ride);
         }
     }
     
     void removeRide(Ride ride) {
-        rides.remove(ride);
+        rides.get(ride).cancel(false);  // cancel the future to stop it from reoccuring
+        rides.remove(ride);  // remove it from the list
     }
 
     void addNewRide() {
         Ride ride = Ride.newRide();
-        rides.add(ride);
         ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
-        ride.setFuture(future);
+        rides.put(ride,future);
     }
     
     /*
@@ -284,7 +283,7 @@ public enum GpsGenerator {
 
         INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
         INSTANCE.loadRoutes();
-        INSTANCE.createInitialRides(1);
+        INSTANCE.createInitialRides(1000);
         INSTANCE.run();
     }
 }

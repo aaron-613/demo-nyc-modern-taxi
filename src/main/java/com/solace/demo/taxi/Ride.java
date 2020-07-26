@@ -4,10 +4,12 @@ import java.awt.geom.Point2D;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-import java.util.concurrent.ScheduledFuture;
 
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
@@ -21,6 +23,7 @@ public class Ride implements Runnable {
     }
     
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+    private static final Logger logger = LogManager.getLogger(Ride.class);
 
     private final String rideId;
     private final Driver driver;
@@ -29,7 +32,6 @@ public class Ride implements Runnable {
     private final RouteLoader.Route route;
     private Status status = Status.NOT_STARTED;
     private int routePositionIndex = 0;
-    private ScheduledFuture<?> future = null;
     
     private Ride() {
         rideId = UUID.randomUUID().toString();
@@ -56,10 +58,6 @@ public class Ride implements Runnable {
         return ride;
     }
     
-    public void setFuture(ScheduledFuture<?> future) {
-        this.future = future;
-    }
-
     public Driver getDriver() {
         return driver;
     }
@@ -95,7 +93,6 @@ public class Ride implements Runnable {
     }
     
     public void tick() {
-        System.out.println("tick");
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
         /*
          * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":0,"latitude":40.78754,"longitude":-73.97467,"timestamp":"2020-06-04T20:35:15.19397-04:00","meter_reading":0,"meter_increment":0.036538463,"ride_status":"pickup","passenger_count":1}
@@ -107,6 +104,7 @@ public class Ride implements Runnable {
         case NOT_STARTED:  // guess we're starting now!
             status = Status.EN_ROUTE;
             rideStatus = "pickup";
+            logger.debug("Starting ride: "+this.toString());
             break;
         case EN_ROUTE:
             routePositionIndex++;
@@ -119,14 +117,9 @@ public class Ride implements Runnable {
             break;
         case FINISHED:  // we are done now
         default:
-            if (future == null) {
-                System.err.println("Somehow this Runnable is running, but we're cancelled!");
-                System.err.println(this);
-            } else {
-                future.cancel(false);
-                GpsGenerator.INSTANCE.removeRide(this);
-                GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
-            }
+            logger.debug("DELETING ride: "+this.toString());
+            GpsGenerator.INSTANCE.removeRide(this);
+            GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
             return;
         }
         // topic = taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
