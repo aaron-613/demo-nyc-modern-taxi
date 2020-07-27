@@ -13,7 +13,7 @@ public class VehicleUtilsTests {
     
     @Test
     public void testHeading() throws FileNotFoundException, IOException {
-        RouteLoader.INSTANCE.load("coords_01.txt");
+        RouteLoader.INSTANCE.load("coords_single.txt");
 
         System.out.println("Remember: x=lon, y=lat");
         System.out.println(RouteLoader.INSTANCE.getCoord(0,1));
