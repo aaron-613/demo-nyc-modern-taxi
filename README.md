@@ -1,8 +1,6 @@
 # demo-nyc-modern-taxi-pub
 
-https://sites.google.com/site/trescopter/Home/concepts/required-precision-for-gps-calculations
-
-# To build / run
+## To build / run
 
 1. Clone the project
 2. `./gradlew clean assemble` on Linux/Mac terminal, or `.\gradlew.bat clean assemble` on Windows Command Prompt
@@ -13,5 +11,8 @@ https://sites.google.com/site/trescopter/Home/concepts/required-precision-for-gp
 1. `bin/demo-nyc-modern-taxi-pub <localhost> <vpnName> <username> [password]`
 
 
+## Misc
 
+We're going to use singe-precision (`float` not `double`) to store internally the coordinates for the routes:
+https://sites.google.com/site/trescopter/Home/concepts/required-precision-for-gps-calculations
 
