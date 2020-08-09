@@ -4,11 +4,13 @@ import java.awt.geom.Point2D;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.json.Json;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
@@ -152,9 +154,9 @@ public class Ride implements Runnable {
     public String getPayload(String rideStatus) {
         // {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00",...
         //      "meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
-        JsonObjectBuilder job = Json.createObjectBuilder();
+        JsonBuilderFactory factory = Json.createBuilderFactory(Collections.emptyMap());
         Point2D.Float point = route.coords.get(routePositionIndex);
-        
+        JsonObjectBuilder job = factory.createObjectBuilder();
         job.add("ride_id",rideId)
                 .add("point_idx",routePositionIndex)
                 .add("latitude",Math.round(point.y*1000000)/1000000.0)
@@ -165,7 +167,22 @@ public class Ride implements Runnable {
                 .add("meter_reading",Math.round(route.meterAmount.get(routePositionIndex)*100)/100.0)
                 .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
                 .add("ride_status",rideStatus)
-                .add("passenger_count",route.passengerCount);
+                .add("passenger_count",route.passengerCount)
+                .add("driver",factory.createObjectBuilder()
+                        .add("driver_id",getDriver().getId())
+                        .add("first_name",getDriver().getFirstName())
+                        .add("last_name",getDriver().getLastName())
+                        .add("rating",getDriver().getRating())
+                        .add("car_class",getDriver().getCarClass()))
+                .add("passenger",factory.createObjectBuilder()
+                        .add("passenger_id",getPassenger().getId())
+                        .add("first_name",getPassenger().getFirstName())
+                        .add("last_name",getPassenger().getLastName())
+                        .add("rating",getPassenger().getRating()));
+                        
+                
+                        
+                        
 //        return job.build().toString();
         // how about pretty print instead??
         StringWriter writer = new StringWriter();

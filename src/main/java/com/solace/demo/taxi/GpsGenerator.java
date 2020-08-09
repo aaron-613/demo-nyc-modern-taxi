@@ -30,8 +30,8 @@ public enum GpsGenerator {
 
     INSTANCE;
     
-    public final static int GPS_UPDATE_RATE_MS = 2000;  // every 2 seconds
-    public final static String COORDS_FILENAME = "/coords_00.txt";
+    public final static int GPS_UPDATE_RATE_MS = 10000;  // every 10 seconds
+    public final static String COORDS_FILENAME = "config/coords_single.txt";
     
     private String host;
     private String vpn;
@@ -64,19 +64,17 @@ public enum GpsGenerator {
     }
     
     void sendMessage(BytesXMLMessage message, String topic) {
-        if (4.4 > 3.3) {
-            try {
-                //Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
-                if (connected) {
-                    logger.debug("sending to "+topic+" -- "+message.dump());
-                    producer.send(message,JCSMPFactory.onlyInstance().createTopic(topic));
-                }
-                else {
-//                    System.out.println("not connected, can't send");
-                }
-            } catch (JCSMPException e) {
-                System.out.println("Had an issue sending a message");
+        try {
+            //Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
+            if (connected) {
+                logger.debug("sending to "+topic+" -- "+message.dump());
+                producer.send(message,JCSMPFactory.onlyInstance().createTopic(topic));
             }
+            else {
+//                    System.out.println("not connected, can't send");
+            }
+        } catch (JCSMPException e) {
+            System.out.println("Had an issue sending a message");
         }
     }
     
@@ -151,7 +149,7 @@ public enum GpsGenerator {
         properties.setProperty(JCSMPProperties.PASSWORD,pw);
         JCSMPChannelProperties cp = new JCSMPChannelProperties();
         cp.setReconnectRetries(-1);
-        cp.setCompressionLevel(9);  // disable if not using compressed port
+        //cp.setCompressionLevel(9);  // disable if not using compressed port
         properties.setProperty(JCSMPProperties.CLIENT_CHANNEL_PROPERTIES,cp);
         session = JCSMPFactory.onlyInstance().createSession(properties);
         session.connect();
@@ -283,7 +281,7 @@ public enum GpsGenerator {
 
         INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
         INSTANCE.loadRoutes();
-        INSTANCE.createInitialRides(100);
+        INSTANCE.createInitialRides(50);
         INSTANCE.run();
     }
 }

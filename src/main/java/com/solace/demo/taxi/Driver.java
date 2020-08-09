@@ -1,6 +1,10 @@
 package com.solace.demo.taxi;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Driver {
+    
+    private static AtomicInteger nextDriverId = new AtomicInteger(1);
     
     private final String id;  // 8 digit integer: 00000000 .. 99999999
     private final String firstName;
@@ -29,7 +33,8 @@ public class Driver {
     }
     
     public static Driver newInstance() {
-        String id = ""+(int)(Math.random()*100_000_000);
+        String id = String.format("%08d",nextDriverId.getAndIncrement());
+        //String id = ""+(int)(Math.random()*100_000_000);
         String first = FIRSTS[(int)(Math.random()*FIRSTS.length)];
         String last = LASTS[(int)(Math.random()*LASTS.length)];
         return new Driver(id,first,last);

@@ -12,8 +12,8 @@ public class Passenger {
     private final String id;
     private final String firstName = "John";
     private final String lastName = "Doe";
-    private Status status;
-    private String routeId;
+//    private Status status;
+//    private String routeId;
     
     
     private Passenger() {
@@ -40,6 +40,10 @@ public class Passenger {
 
     public String getLastName() {
         return lastName;
+    }
+    
+    public float getRating() {
+        return 4.87f;
     }
 
     @Override

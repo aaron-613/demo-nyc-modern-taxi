@@ -3,7 +3,6 @@ package com.solace.demo.taxi;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -74,18 +73,9 @@ public enum RouteLoader {
         BufferedReader reader = null;
         try {
             //reader = new BufferedReader(new FileReader(getClass().getClassLoader().getResource(filename).getFile()));
-            reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(filename)));
+            reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(filename)));
         } catch (NullPointerException e) {
-            System.out.println("weird");
-            System.out.println(filename);
-            System.out.println(getClass());
-            System.out.println(getClass().getClassLoader());
-            System.out.println(getClass().getClassLoader().getResource(filename));
-//            System.out.println(getClass().getClassLoader().getResource(filename).getFile());
-            System.out.println(getClass().getResourceAsStream(filename));
-            
-            
-            System.out.println("throwing..!");
+            System.out.println("Tried to load "+filename+" but couldn't be found!");
             throw e;
         }
         String line = null;
@@ -103,14 +93,15 @@ public enum RouteLoader {
             }
         }
     }
-    
-    
+
     public static void main(String... args) throws FileNotFoundException, IOException {
         //RouteLoader rl = new RouteLoader();
         
         
         
-        INSTANCE.load("/coords_00.txt");
+//        INSTANCE.resourceLoadTests("test2.txt");
+//        INSTANCE.resourceLoadTests("/test2.txt");
+        INSTANCE.load("config/coords_single.txt");
         System.out.println(INSTANCE.getNumRoutes());
         
         

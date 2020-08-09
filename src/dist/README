@@ -1,0 +1,4 @@
+Hello, and welcome to the compiled version of the Solace Modern NYC Taxi demo.
+
+To load additional coordinate files, please place them in the `config` directory.  TBD on actually getting them to load though.
+
