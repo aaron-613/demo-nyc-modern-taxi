@@ -10,7 +10,7 @@ public class Passenger {
     }
     
     private final String id;
-    private final String firstName = "John";
+    private final String firstName = "Sam";
     private final String lastName = "Doe";
 //    private Status status;
 //    private String routeId;

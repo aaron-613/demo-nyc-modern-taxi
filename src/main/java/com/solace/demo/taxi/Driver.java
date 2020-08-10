@@ -10,7 +10,7 @@ public class Driver {
     private final String firstName;
     private final String lastName;
     private final String carClass;
-    private int totalTrips;  // 0.0 .. 5.0
+    private int totalTrips;
     private int totalRatings;  // sum of all ratings, which are 0..5
     
     
@@ -78,6 +78,20 @@ public class Driver {
         return String.format("%s %s, #%s, %.2f (%s)",getFirstName(),getLastName(),getId(),getRating(),getCarClass());
     }
     
+    
+    public static void main(String... args) {
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+        System.out.println(Driver.newInstance());
+    }
     
     
 }
