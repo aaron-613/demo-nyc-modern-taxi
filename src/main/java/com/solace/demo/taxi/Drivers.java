@@ -20,7 +20,7 @@ public enum Drivers {
         return drivers;
     }
     
-    public Driver getRandomDriver() {
+    public Driver getRandomIdleDriver() {
         Driver driver = drivers.get((int)(Math.random()*drivers.size()));
         int count = 1;
         while (driver.getState() != Driver.State.IDLE && count++ < 10) {

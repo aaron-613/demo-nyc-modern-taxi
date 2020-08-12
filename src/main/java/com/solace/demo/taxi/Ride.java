@@ -19,6 +19,7 @@ import javax.json.stream.JsonGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.solace.demo.taxi.Driver.State;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.TextMessage;
 
@@ -43,7 +44,8 @@ public class Ride implements Runnable {
     
     private Ride() {
         rideId = UUID.randomUUID().toString();
-        driver = Drivers.INSTANCE.getRandomDriver();
+        driver = Drivers.INSTANCE.getRandomIdleDriver();
+        driver.setState(State.OCCUPIED);
         passenger = Passenger.newPassenger();
         routeNum = (int)(Math.random()*RouteLoader.INSTANCE.getNumRoutes());
         route = RouteLoader.INSTANCE.getRoute(routeNum);
@@ -126,6 +128,7 @@ public class Ride implements Runnable {
         case FINISHED:  // we are done now
         default:
             logger.debug("DELETING ride: "+this.toString());
+            driver.setState(State.IDLE);
             GpsGenerator.INSTANCE.removeRide(this);
             GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
             return;

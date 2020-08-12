@@ -56,6 +56,10 @@ public class Driver {
         return state;
     }
     
+    public void setState(State state) {
+        this.state = state;
+    }
+    
     public String getName() {
         return firstName + " " + lastName;
     }
