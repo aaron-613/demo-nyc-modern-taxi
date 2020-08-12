@@ -21,7 +21,15 @@ public enum Drivers {
     }
     
     public Driver getRandomDriver() {
-        return drivers.get((int)(Math.random()*drivers.size()));
+        Driver driver = drivers.get((int)(Math.random()*drivers.size()));
+        int count = 1;
+        while (driver.getState() != Driver.State.IDLE && count++ < 10) {
+            driver = drivers.get((int)(Math.random()*drivers.size()));
+        }
+        if (count == 10) {
+            throw new RuntimeException("COULD NOT FIND A FREE DRIVER!");
+        }
+        return driver;
     }
     
     

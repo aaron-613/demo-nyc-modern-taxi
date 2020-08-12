@@ -6,7 +6,15 @@ public class Driver {
     
     private static AtomicInteger nextDriverId = new AtomicInteger(1);
     
+    public enum State {
+        IDLE,
+        OCCUPIED,
+        ;
+    }
+    
+    
     private final String id;  // 8 digit integer: 00000000 .. 99999999
+    private State state = State.IDLE;
     private final String firstName;
     private final String lastName;
     private final String carClass;
@@ -44,6 +52,9 @@ public class Driver {
         return id;
     }
 
+    public State getState() {
+        return state;
+    }
     
     public String getName() {
         return firstName + " " + lastName;

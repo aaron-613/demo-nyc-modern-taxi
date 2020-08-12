@@ -59,8 +59,8 @@ public class Ride implements Runnable {
      */
     public static Ride randomRide() {
         Ride ride = new Ride();
-        if (ride.route.coords.size() < 5) return ride;
-        // else...
+        if (ride.route.coords.size() < 5) return ride;  // is it a really short ride? less than 5 ticks? start at the beginning
+        // else... start somewhere in the middle, and
         ride.routePositionIndex = 2 + (int)(Math.round(Math.random()*(ride.route.coords.size()-4)));
         ride.status = Status.EN_ROUTE;
         return ride;
