@@ -31,7 +31,7 @@ public enum GpsGenerator {
     INSTANCE;
     
     public final static int GPS_UPDATE_RATE_MS = 10000;  // every 10 seconds
-    public final static String COORDS_FILENAME = "config/coords_single.txt";
+    public final static String COORDS_FILENAME = "config/coords_00.txt";
     
     private String host;
     private String vpn;
