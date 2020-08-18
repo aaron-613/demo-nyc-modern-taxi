@@ -227,7 +227,8 @@ public enum GpsGenerator {
                         String topic = message.getDestination().getName();
                         
                         System.out.println(topic);
-                        
+                        // taxinyc/ops/ride/called/v1/${car_class}/${passenger_id}/${pick_up_longitude}/${pick_up_latitude}
+
                         if (topic.startsWith("taxinyc/ops/ride/called/v1/")) {
                             // someone is calling a ride
                         } else if (topic.startsWith(".../")) {
@@ -281,7 +282,7 @@ public enum GpsGenerator {
 
         INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
         INSTANCE.loadRoutes();
-        INSTANCE.createInitialRides(50);
+        INSTANCE.createInitialRides(100);
         INSTANCE.run();
     }
 }
