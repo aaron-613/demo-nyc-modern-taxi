@@ -30,7 +30,7 @@ public enum GpsGenerator {
 
     INSTANCE;
     
-    public final static int GPS_UPDATE_RATE_MS = 2000;  // every 10 seconds
+    public final static int GPS_UPDATE_RATE_MS = 5000;
     public final static String COORDS_FILENAME = "config/coords_00.txt";
     
     private String host;
@@ -74,7 +74,7 @@ public enum GpsGenerator {
 //                    System.out.println("not connected, can't send");
             }
         } catch (JCSMPException e) {
-            System.out.println("Had an issue sending a message");
+            logger.warn("Had an issue sending a message");
         }
     }
     
@@ -102,8 +102,8 @@ public enum GpsGenerator {
             logger.info("Created "+ride);
         }
     }
-    
     void removeRide(Ride ride) {
+    
         rides.get(ride).cancel(false);  // cancel the future to stop it from reoccuring
         rides.remove(ride);  // remove it from the list
     }
@@ -171,19 +171,19 @@ public enum GpsGenerator {
                     @Override
                     public void responseReceivedEx(Object key) {
                         // won't since we're only sending Direct messages
-                        System.out.println("prodcer response received");
+                        logger.info("prodcer response received");
                     }
 
                     @Override
                     public void handleErrorEx(Object key, JCSMPException cause, long timestamp) {
                         // shouldn't get a publisher error (NACK), but may have exceptions thrown for connectivity
-                        System.err.println("Producer handleError() got something: "+cause.toString());
+                        logger.warn("Producer handleError() got something: "+cause.toString());
                     }
 
                 }, new JCSMPProducerEventHandler() {
                     @Override
                     public void handleEvent(ProducerEventArgs event) {
-                        System.err.println("Producer EVENT handler got something: "+event.toString());
+                        logger.warn("Producer EVENT handler got something: "+event.toString());
                         
                     }
                 });
@@ -191,14 +191,14 @@ public enum GpsGenerator {
                     
                     @Override
                     public boolean preReconnect() throws JCSMPException {
-                        System.out.println("RECONNECTING...");
+                        logger.info("RECONNECTING...");
                         connected = false;
                         return true;
                     }
                     
                     @Override
                     public void postReconnect() throws JCSMPException {
-                        System.out.println("RECONNECTED!");
+                        logger.info("RECONNECTED!");
                         connected = true;
                     }
                 }, new XMLMessageListener() {

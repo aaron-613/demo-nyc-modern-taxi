@@ -34,9 +34,9 @@ dependencies {
 
 }
 
-compileJava   {
-  sourceCompatibility = '1.8'
-  targetCompatibility = '1.8'
+java   {
+  sourceCompatibility = 'VERSION_1_8'
+  targetCompatibility = 'VERSION_1_8'
 }
 
 eclipse {

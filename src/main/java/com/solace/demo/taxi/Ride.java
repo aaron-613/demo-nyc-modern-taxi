@@ -103,53 +103,56 @@ public class Ride implements Runnable {
     }
     
     public void tick() {
-        TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-        /*
-         * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":0,"latitude":40.78754,"longitude":-73.97467,"timestamp":"2020-06-04T20:35:15.19397-04:00","meter_reading":0,"meter_increment":0.036538463,"ride_status":"pickup","passenger_count":1}
-         * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00","meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
-         * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":364,"latitude":40.76278000000001,"longitude":-73.9735,"timestamp":"2020-06-04T20:51:18.19397-04:00","meter_reading":13.3,"meter_increment":0.036538463,"ride_status":"dropoff","passenger_count":1}        final String baseTopic = "taxinyc/ops/ride/updated/v1/";
-         */
-        String rideStatus;
-        switch (status) {
-        case NOT_STARTED:  // guess we're starting now!
-            status = Status.EN_ROUTE;
-            rideStatus = "pickup";
-            logger.debug("Starting ride: "+this.toString());
-            break;
-        case EN_ROUTE:
-            routePositionIndex++;
-            if (routePositionIndex == route.coords.size()-1) {  // the end!
-                rideStatus = "dropoff";
-                status = Status.FINISHED;
-            } else {
-                rideStatus = "enroute";
+        try {
+            TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+            /*
+             * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":0,"latitude":40.78754,"longitude":-73.97467,"timestamp":"2020-06-04T20:35:15.19397-04:00","meter_reading":0,"meter_increment":0.036538463,"ride_status":"pickup","passenger_count":1}
+             * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00","meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
+             * {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":364,"latitude":40.76278000000001,"longitude":-73.9735,"timestamp":"2020-06-04T20:51:18.19397-04:00","meter_reading":13.3,"meter_increment":0.036538463,"ride_status":"dropoff","passenger_count":1}        final String baseTopic = "taxinyc/ops/ride/updated/v1/";
+             */
+            String rideStatus;
+            switch (status) {
+            case NOT_STARTED:  // guess we're starting now!
+                status = Status.EN_ROUTE;
+                rideStatus = "pickup";
+                logger.debug("Starting ride: "+this.toString());
+                break;
+            case EN_ROUTE:
+                routePositionIndex++;
+                if (routePositionIndex == route.coords.size()-1) {  // the end!
+                    rideStatus = "dropoff";
+                    status = Status.FINISHED;
+                } else {
+                    rideStatus = "enroute";
+                }
+                break;
+            case FINISHED:  // we are done now
+            default:
+                logger.debug("DELETING ride: "+this.toString());
+                driver.setState(State.IDLE);
+                GpsGenerator.INSTANCE.removeRide(this);
+                GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
+                return;
             }
-            break;
-        case FINISHED:  // we are done now
-        default:
-            logger.debug("DELETING ride: "+this.toString());
-            driver.setState(State.IDLE);
-            GpsGenerator.INSTANCE.removeRide(this);
-            GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
-            return;
+            // topic = taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
+            final String baseTopic = "taxinyc/ops/ride/updated/v1/";
+            StringBuilder topicSb = new StringBuilder(baseTopic);
+            
+            Point2D.Float point = route.coords.get(routePositionIndex);
+    
+            topicSb.append(rideStatus).append('/')
+                    .append(driver.getId()).append('/')
+                    .append(passenger.getId()).append('/')
+                    .append(String.format("%010.5f",point.x)).append('/')
+                    .append(String.format("%09.5f",point.y));
+            
+            String topic = topicSb.toString();
+            String payload = getPayload(rideStatus);
+            msg.setText(payload);
+            GpsGenerator.INSTANCE.sendMessage(msg,topic);
+        } catch (Exception e) {
+            logger.warn("Caught during tick()",e);
         }
-        // topic = taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
-        final String baseTopic = "taxinyc/ops/ride/updated/v1/";
-        StringBuilder topicSb = new StringBuilder(baseTopic);
-        
-        Point2D.Float point = route.coords.get(routePositionIndex);
-
-        topicSb.append(rideStatus).append('/')
-                .append(driver.getId()).append('/')
-                .append(passenger.getId()).append('/')
-                .append(String.format("%010.5f",point.x)).append('/')
-                .append(String.format("%09.5f",point.y));
-        
-        String topic = topicSb.toString();
-        String payload = getPayload(rideStatus);
-        msg.setText(payload);
-        GpsGenerator.INSTANCE.sendMessage(msg,topic);
-
     }
     
     
