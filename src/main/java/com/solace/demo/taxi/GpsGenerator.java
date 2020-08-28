@@ -2,6 +2,8 @@ package com.solace.demo.taxi;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -10,10 +12,17 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import javax.json.Json;
+import javax.json.JsonException;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.solacesystems.jcsmp.BytesMessage;
 import com.solacesystems.jcsmp.BytesXMLMessage;
+import com.solacesystems.jcsmp.ClientName;
 import com.solacesystems.jcsmp.JCSMPChannelProperties;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
@@ -23,6 +32,8 @@ import com.solacesystems.jcsmp.JCSMPReconnectEventHandler;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
 import com.solacesystems.jcsmp.ProducerEventArgs;
+import com.solacesystems.jcsmp.TextMessage;
+import com.solacesystems.jcsmp.Topic;
 import com.solacesystems.jcsmp.XMLMessageConsumer;
 import com.solacesystems.jcsmp.XMLMessageListener;
 import com.solacesystems.jcsmp.XMLMessageProducer;
@@ -33,6 +44,7 @@ public enum GpsGenerator {
     
     public final static int GPS_UPDATE_RATE_MS = 5000;
     public final static String COORDS_FILENAME = "config/coords_00.txt";
+    public final static Charset UTF_8 = Charset.forName("utf-8");
     
     private String host;
     private String vpn;
@@ -73,6 +85,9 @@ public enum GpsGenerator {
         INSTANCE.pw = pw;
     }
     
+    /**
+     * Very basic bare-bones publisher utility method
+     */
     void sendMessage(BytesXMLMessage message, String topic) {
         try {
             //Topic destination = JCSMPFactory.onlyInstance().createTopic(topic);
@@ -84,7 +99,8 @@ public enum GpsGenerator {
 //                    System.out.println("not connected, can't send");
             }
         } catch (JCSMPException e) {
-            logger.warn("Had an issue sending a message");
+            logger.warn("Had an issue sending a message",e);
+            logger.warn(message);
         }
     }
     
@@ -118,38 +134,19 @@ public enum GpsGenerator {
         rides.remove(ride);  // remove it from the list
     }
 
-    void addNewRide() {
-        Ride ride = Ride.newRide();
+    void addNewRide(Ride ride) {
         // the ride will start in 5 to 15 seconds
         ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*10000) + 5000,GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
         rides.put(ride,future);
+        // send out the ride request!
+        service.execute(new Runnable() {
+            @Override
+            public void run() {
+                ride.makeRideRequest();  // will publish a message, so this method (ideally) shouldn't be called from an API-owned thread
+            }
+        });
     }
     
-    /*
-    void addRandomBus(int number) {
-        for (int i=0;i<number;i++) {
-            Bus bus = busTracker.addRandomBus();
-            service.scheduleAtFixedRate(bus,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
-//            System.out.println("added a bus");
-        }
-    }
-    
-    void addBues() {
-        busTracker.initBuses();
-        for (Bus bus : busTracker.buses) {
-            service.scheduleAtFixedRate(bus,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
-        }
-        System.out.println(busTracker.buses.size()+" buses added.");
-    }
-    
-    void addRandomTaxi(int number) {
-        for (int i=0;i<number;i++) {
-            Taxi taxi = taxiTracker.addRandomTaxi();
-            service.scheduleAtFixedRate(taxi,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
-//            System.out.println("added a taxi");
-        }
-    }
-*/    
 
     void run() throws JCSMPException {
         System.out.println("About to create GpsGenerator session.");
@@ -215,35 +212,59 @@ public enum GpsGenerator {
                 }, new XMLMessageListener() {
                     @Override
                     public void onReceive(BytesXMLMessage message) {
-                        System.out.println("HERE");
-                        System.out.println(message.dump());
-                        /* this is where you will add a switch/case statement to call various methods to
-                         *  a) add n more random cars
-                         *  b) add a user car
-                         *  c) fault a user car
-                         *  etc.
-                         *      geo/bus/vehNum/lat/lon/routeNum/status
-                         *      geo/taxi/vehNum/lat/lon/status
-                         *      geo/train/vehNum/lat/lon/routeNum
-                                comms/bus/1234
-                                comms/route/012
-                                comms/broadcast
-                                comms/dispatch
-                                ctrl/bus/vehNum/stop
-                                ctrl/bus/vehNum/start
-                                ctrl/bus/vehNum/flat
-                                ctrl/bus/vehNum/crash
-                                ctrl/bus/vehNum/fix
-                         */
+                        //System.out.println(topic);
+                        //System.out.println(message.dump());
                         String topic = message.getDestination().getName();
-                        
-                        System.out.println(topic);
-                        // taxinyc/ops/ride/called/v1/${car_class}/${passenger_id}/${pick_up_longitude}/${pick_up_latitude}
 
+                        // taxinyc/ops/ride/called/v1/${car_class}/${passenger_id}/${pick_up_longitude}/${pick_up_latitude}
                         if (topic.startsWith("taxinyc/ops/ride/called/v1/")) {
                             // someone is calling a ride
-                        } else if (topic.startsWith(".../")) {
+                            logger.info("Received Ride request: "+topic);
                             
+                        } else if (topic.startsWith("taxinyc/ops/ride/called/demo")) {
+                            logger.info("Received HUMAN Ride request: "+topic);
+                            String payload;
+                            if (message instanceof TextMessage) {
+                                payload = ((TextMessage)message).getText();
+                            } else {  // assume it's binary!
+                                try {
+                                    payload = new String(((BytesMessage)message).getData(),UTF_8);
+                                } catch (RuntimeException e) {
+                                    logger.warn("Could not decode payload of Human rider message: "+message.dump());
+                                    return;
+                                }
+                            }
+                            logger.info(payload);  // hopefully it's JSON
+                            try {
+                                JsonReader reader = Json.createReader(new StringReader(payload));
+                                JsonObject msgJsonObject = reader.readObject();
+                                if (!msgJsonObject.containsKey("solClientName")) {
+                                    logger.warn("Could not find Client Name in JSON object");
+                                    return;
+                                }
+                                String solClientName = msgJsonObject.getString("solClientName");
+                                String name;
+                                if (msgJsonObject.containsKey("name")) {
+                                    name = msgJsonObject.getString("name");
+                                } else {
+                                    name = Names.randomFirstName() + " " + Names.randomLastName();
+                                }
+                                Passenger p = Passenger.newPassenger(name);
+//                                ClientName clientName = JCSMPFactory.onlyInstance().createClientName(origMsg.getSenderId());
+                                ClientName clientName = JCSMPFactory.onlyInstance().createClientName(solClientName);
+
+                                Topic sub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/>");
+                                try {
+                                    session.addSubscription(clientName,sub,JCSMPSession.WAIT_FOR_CONFIRM);
+                                } catch (JCSMPException e) {
+                                    logger.warn("COuld not add a sub for "+clientName,e);
+                                    return;  // don't add a new ride for a client that doesn't exist!
+                                }
+                                Ride requestedRide = Ride.newRide(p);
+                                addNewRide(requestedRide);
+                            } catch (JsonException e) {
+                                logger.warn("COuldn't parse JSON");
+                            }
                         }
                         ///taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${rider_id}/${current_longitude}/${current_latitude}
 
@@ -281,6 +302,11 @@ public enum GpsGenerator {
 
 
     public static void main(String... args) throws JCSMPException, IOException {
+        
+        String name = "aaron   ";
+        System.out.println(name.split(" ",3).length);
+        
+        
         if (args.length < 3) {
             System.out.println("Not enough args");
             System.out.println("Usage: GpsGenerator <IP or hostname> <vpn> <user> [password]");
@@ -293,7 +319,7 @@ public enum GpsGenerator {
 
         INSTANCE.initializeSingletonBroadcaster(host, vpn, user, pw);
         INSTANCE.loadRoutes();
-        INSTANCE.createInitialRides(100);
+        INSTANCE.createInitialRides(200);
         INSTANCE.run();
     }
 }

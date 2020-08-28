@@ -42,17 +42,21 @@ public class Ride implements Runnable {
     private Status status = Status.NOT_STARTED;
     private int routePositionIndex = 0;
     
-    private Ride() {
-        rideId = UUID.randomUUID().toString();
-        driver = Drivers.INSTANCE.getRandomIdleDriver();
-        driver.setState(State.OCCUPIED);
-        passenger = Passenger.newPassenger();
-        routeNum = (int)(Math.random()*RouteLoader.INSTANCE.getNumRoutes());
-        route = RouteLoader.INSTANCE.getRoute(routeNum);
+    private Ride(Passenger passenger) {
+        this.rideId = UUID.randomUUID().toString();
+        this.driver = Drivers.INSTANCE.getRandomIdleDriver();
+        this.driver.setState(State.OCCUPIED);
+        this.passenger = passenger;
+        this.routeNum = (int)(Math.random()*RouteLoader.INSTANCE.getNumRoutes());
+        this.route = RouteLoader.INSTANCE.getRoute(routeNum);
     }
     
     public static Ride newRide() {
-        return new Ride();
+        return new Ride(Passenger.randomPassenger());
+    }
+    
+    public static Ride newRide(Passenger passenger) {
+        return new Ride(passenger);
     }
     
     /**
@@ -60,7 +64,7 @@ public class Ride implements Runnable {
      * @return
      */
     public static Ride randomRide() {
-        Ride ride = new Ride();
+        Ride ride = new Ride(Passenger.randomPassenger());
         if (ride.route.coords.size() < 5) return ride;  // is it a really short ride? less than 5 ticks? start at the beginning
         // else... start somewhere in the middle, and
         ride.routePositionIndex = 2 + (int)(Math.round(Math.random()*(ride.route.coords.size()-4)));
@@ -102,6 +106,30 @@ public class Ride implements Runnable {
         tick();
     }
     
+    /**
+     * This is called when the ride object is first created by the GPS Publisher. It will send a "fake" ride request message, as if a human had done it
+     */
+    public void makeRideRequest() {
+        assert status == Status.NOT_STARTED;
+        try {
+            TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
+            //taxinyc/ops/ride/called/v1/${car_class}/${passenger_id}/${pick_up_longitude}/${pick_up_latitude}
+            final String baseTopic = "taxinyc/ops/ride/called/v1/";
+            StringBuilder topicSb = new StringBuilder(baseTopic);
+            Point2D.Float point = route.coords.get(0);  // first coord
+            topicSb.append(driver.getCarClass()).append('/')
+                    .append(passenger.getId()).append('/')
+                    .append(String.format("%010.5f",point.x)).append('/')
+                    .append(String.format("%09.5f",point.y));
+            GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
+        } catch (RuntimeException e) {
+            // shouldn't have anything thrown from here
+            logger.warn("HEY! Had a runtime exception thrown from makeRideRequest: ",e);
+        } finally {
+            
+        }
+    }
+    
     public void tick() {
         try {
             TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
@@ -131,7 +159,9 @@ public class Ride implements Runnable {
                 logger.debug("DELETING ride: "+this.toString());
                 driver.setState(State.IDLE);
                 GpsGenerator.INSTANCE.removeRide(this);
-                GpsGenerator.INSTANCE.addNewRide();  // make a new one to replace this one
+                if (!passenger.isHuman()) {  // i.e. it's a robot, one of the "background noise" rides driving around
+                    GpsGenerator.INSTANCE.addNewRide(newRide());  // make a new random one to replace this one that is ending
+                }
                 return;
             }
             // topic = taxinyc/ops/ride/updated/v1/${ride_status}/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
