@@ -12,7 +12,7 @@ public class VehicleUtils {
     public static int calcHeading(int route, int pos) {
         if (pos > 0) {  // use the previous point to calculate heading
             return heading(RouteLoader.INSTANCE.getCoord(route,pos-1),RouteLoader.INSTANCE.getCoord(route,pos));
-        } else {  // starting point, use the next one rather than the last
+        } else {  // starting point, use the next one rather than the last... assumes length of coords > 1
             return heading(RouteLoader.INSTANCE.getCoord(route,pos),RouteLoader.INSTANCE.getCoord(route,pos+1));
         }
     }

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
@@ -53,6 +54,15 @@ public enum GpsGenerator {
         ScheduledThreadPoolExecutor service = new ScheduledThreadPoolExecutor(20);
         service.setRemoveOnCancelPolicy(true);
         service.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        ThreadFactory factory = new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setDaemon(true);
+                return t;
+            }
+        };
+        service.setThreadFactory(factory);
         this.service = service;
     }
     
@@ -110,7 +120,8 @@ public enum GpsGenerator {
 
     void addNewRide() {
         Ride ride = Ride.newRide();
-        ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*GPS_UPDATE_RATE_MS),GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
+        // the ride will start in 5 to 15 seconds
+        ScheduledFuture<?> future = service.scheduleAtFixedRate(ride,(long)(Math.random()*10000) + 5000,GPS_UPDATE_RATE_MS,TimeUnit.MILLISECONDS);
         rides.put(ride,future);
     }
     
@@ -152,7 +163,7 @@ public enum GpsGenerator {
         //cp.setCompressionLevel(9);  // disable if not using compressed port
         properties.setProperty(JCSMPProperties.CLIENT_CHANNEL_PROPERTIES,cp);
         session = JCSMPFactory.onlyInstance().createSession(properties);
-        session.connect();
+        session.connect();  // will throw a checked exception here if it can't connect
         session.setProperty(JCSMPProperties.CLIENT_NAME,"TaxiPub_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
         try {
             try {
