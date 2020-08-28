@@ -151,7 +151,7 @@ public class Ride implements Runnable {
             msg.setText(payload);
             GpsGenerator.INSTANCE.sendMessage(msg,topic);
         } catch (Exception e) {
-            logger.warn("Caught during tick()",e);
+            logger.warn("Caught during tick() on "+this.toString()+", with payload :"+getPayload("test"),e);
         }
     }
     

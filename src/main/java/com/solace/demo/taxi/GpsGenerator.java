@@ -102,8 +102,8 @@ public enum GpsGenerator {
             logger.info("Created "+ride);
         }
     }
-    void removeRide(Ride ride) {
     
+    void removeRide(Ride ride) {
         rides.get(ride).cancel(false);  // cancel the future to stop it from reoccuring
         rides.remove(ride);  // remove it from the list
     }

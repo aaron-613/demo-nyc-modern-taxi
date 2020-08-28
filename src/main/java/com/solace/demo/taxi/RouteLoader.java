@@ -8,6 +8,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public enum RouteLoader {
 
     INSTANCE;
@@ -28,7 +31,7 @@ public enum RouteLoader {
     }
     // End inner Route class ////////////////////////////////////////////////////////////
 
-    
+    private static final Logger logger = LogManager.getLogger(RouteLoader.class);
     List<Route> routes = new ArrayList<Route>();
 
     public int getNumRoutes() {
@@ -64,6 +67,9 @@ public enum RouteLoader {
             float lat = Float.parseFloat(amountlatlon[1]);
             float lon = Float.parseFloat(amountlatlon[2]);
             coords.add(new Point2D.Float(lon,lat));  // x=lon, y=lat
+        }
+        if (coords.size() <= 2) {
+            logger.info("Just loaded a set of coords with length "+coords.size()+"... meter inc is "+meterIncrement);
         }
         Route route = new Route(passengerCount,meterIncrement,meterAmount,coords);
         return route;
