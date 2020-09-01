@@ -51,14 +51,14 @@
 
     h1 {
       font: 18pt Roboto, sans-serif;
-      color: #00000;
+      color: #000000;
       padding: 2px;
       margin-top: 0px;
       margin-bottom: 0px;
     }
     h3 {
       font: 12pt Roboto, sans-serif;
-      color: #00000;
+      color: #000000;
       padding: 2px;
       margin-top: 0px;
       margin-bottom: 0px;
@@ -70,31 +70,24 @@
       margin-top: 1px;
       margin-bottom: 1px;
     }
-
-    .orange_o {
-      color: #f4961c;
-      font: 17pt century gothic;
-    }
-
     .labels {
       color: blue;
       background-color: white;
       font-family: "Verdana", "Arial", sans-serif;
-      font-size: 10px; //font-weight: bold;
+      font-size: 10px;
       text-align: center;
       width: 100px;
-      border: 1px solid blue; //     white-space: nowrap;
+      border: 1px solid blue; /*  white-space: nowrap; */
     }
 
     .labels3 {
-      //     color: blue;
       background-color: rgba(255, 255, 255, 0.7);
       font-family: "Arial", sans-serif;
       font-size: 14px;
       font-weight: bold;
       text-align: center;
       width: 120px;
-      border: 1px solid black; //     white-space: nowrap;
+      border: 1px solid black;
     }
 
     .labels2 {
@@ -106,7 +99,7 @@
       text-align: left;
       width: 80px;
       border: 1px solid rgba(0, 0, 100, 1);
-      padding-left: 1px; //     white-space: nowrap;
+      padding-left: 1px;
     }
 
   </style>
@@ -123,37 +116,32 @@
     // make the taxis fade out
     setInterval(function() {
       for (var key in vehicles) {
-        var delta = Date.now() - vehicles[key]["ts"];
+        if (!vehicles.hasOwnProperty(key)) continue;
+        var taxi = vehicles[key];
+        var delta = Date.now() - taxi.ts;
         if (delta > 11000) {
-          vehicles[key]["marker"].setMap(null);
+          // they have faded away!  Delete 'em!
+          taxi.marker.setMap(null);
+          if (taxi.infoWindow != null) {
+            taxi.infoWindow.close();
+            console.log("FADING AWAY A INFO WINDOW");
+          }
+          delete vehicles[key];
         } else if (delta > 9000) {
-          vehicles[key]["marker"].setOpacity(0.33);
+          taxi.marker.setOpacity(0.33);
         } else if (delta > 7000) {
-          vehicles[key]["marker"].setOpacity(0.66);
+          taxi.marker.setOpacity(0.66);
         }
       }
     }, 1000);
 
-    var icon_bus_small_ok = { url: "bus_small_ok.png", anchor: { x: 4, y: 4 }};
-    var icon_bus_small_stop = { url: "bus_small_stop.png", anchor: { x: 4, y: 4 }};
-    var icon_bus_small_msg = { url: "bus_small_msg.png", anchor: { x: 8, y: 8 }};
-    var icon_bus_small_fault = { url: "bus_small_fault.png", anchor: { x: 8, y: 8 }};
-    //var icon_bus_med_ok = { url: "bus_med_ok.png", anchor: { x: 8, y: 8 }};
-    var icon_bus_med_ok = { url: "taxi32_3.png", anchor: { x: 8, y: 8 }};
-    var icon_bus_med_stop = { url: "bus_med_stop.png", anchor: { x: 8, y: 8 }};
-    var icon_bus_med_msg = { url: "bus_med_msg.png", anchor: { x: 16, y: 16 }};
     var icon_bus_med_fault = { url: "bus_med_fault.png", anchor: { x: 16, y: 16 }};
 
-    var icon_taxi_16 = [];
-    var icon_taxi_32 = [];
     var icon_taxi_64 = [];
-    for (var i=0;i<16;i++) {
-      //icon_taxi_16.push({ url: "gfx/taxi16_"+i+".png", anchor: { x: 8, y: 8 }});
-      //icon_taxi_32.push({ url: "gfx/taxi32_"+i+".png", anchor: { x: 16, y: 16 }});
-      //icon_taxi_64.push({ url: "gfx/taxi64_"+i+".png", anchor: { x: 32, y: 32 }, scaledSize: new google.maps.Size(24,24)});
+    for (var i=0;i<36;i++) {
       icon_taxi_64.push({ url: "gfx/taxi64_"+i+".png"});//, anchor: { x: 24, y: 24 }});
     }
- //console.log(icon_taxi_16);
+    var infoWindows = [];
 
     function initialize() {
       var mapOptions = {
@@ -183,6 +171,7 @@
         console.log("Zoom changed!!  from " + zoomLevel + " to " + map.getZoom());
         zoomLevel = map.getZoom();
         for (key in vehicles) {
+          if (!vehicles.hasOwnProperty(key)) continue;
           setTaxiIcon(key);
         }
       });
@@ -191,37 +180,39 @@
     google.maps.event.addDomListener(window, 'load', initialize);  // when page is loaded, call initialize()
 
 
+
+    var sizes = [];
+    sizes[11] = new google.maps.Size(16,16);
+    sizes[12] = new google.maps.Size(24,24);
+    sizes[13] = new google.maps.Size(32,32);
+    sizes[14] = new google.maps.Size(36,36);
+    sizes[15] = new google.maps.Size(40,40);
+    sizes[16] = new google.maps.Size(44,44);
+    sizes[17] = new google.maps.Size(48,48);
+    sizes[18] = new google.maps.Size(56,56);
+
     function setTaxiIcon(vehNum) {
-      var vehicle = vehicles[vehNum];
-      var payload = vehicle.payload;
+      var taxi = vehicles[vehNum];
+      var payload = taxi.payload;
       //var status = vehicles[vehNum]["payload"].status;
-  //vehicle.marker.setIcon(icon_taxi_64[Math.floor((payload.heading +11.25) / 22.5) % 16]);
-      var headingIndex = Math.floor((payload.heading +11.25) / 22.5) % 16;
-      vehicle.marker.setIcon(icon_taxi_64[headingIndex]);
-      if (zoomLevel < 12) {
-        vehicle.marker.getIcon().scaledSize = new google.maps.Size(16,16);
-        vehicle.marker.getIcon().anchor = { x: 8, y: 8 };
+      //taxi.marker.setIcon(icon_taxi_64[Math.floor((payload.heading +11.25) / 22.5) % 16]);
+      //var headingIndex = Math.floor((payload.heading +11.25) / 22.5) % 16;
+      var headingIndex = Math.floor((payload.heading +5) / 10) % 36;
+      taxi.marker.setIcon(icon_taxi_64[headingIndex]);
+      if (zoomLevel < 11) {
+        taxi.marker.getIcon().scaledSize = new google.maps.Size(16,16);
+        taxi.marker.getIcon().anchor = { x: 8, y: 8 };
         return;
-      } else if (zoomLevel >= 15) {
-        vehicle.marker.getIcon().scaledSize = new google.maps.Size(64,64);
-        vehicle.marker.getIcon().anchor = { x: 32, y: 32 };
+      } else if (zoomLevel > 18) {
+        taxi.marker.getIcon().scaledSize = new google.maps.Size(64,64);
+        taxi.marker.getIcon().anchor = { x: 32, y: 32 };
         return;
       }
-      switch (zoomLevel) {
-        case 12:
-          vehicle.marker.getIcon().scaledSize = new google.maps.Size(24,24); break;
-          vehicle.marker.getIcon().anchor = { x: 12, y: 12 };
-        case 13:
-          vehicle.marker.getIcon().scaledSize = new google.maps.Size(32,32); break;
-          vehicle.marker.getIcon().anchor = { x: 16, y: 16 };
-        case 14:
-          vehicle.marker.getIcon().scaledSize = new google.maps.Size(40,40); break;
-          vehicle.marker.getIcon().anchor = { x: 20, y: 20 };
-        case 15:
-          vehicle.marker.getIcon().scaledSize = new google.maps.Size(48,48); break;
-          vehicle.marker.getIcon().anchor = { x: 24, y: 24 };
-      }
-      //vehicle.marker.getIcon().scaledSize = new google.maps.Size(Math.pow(2,zoomLevel-10), Math.pow(2,zoomLevel-10));
+      // else... it's in 11..18
+      var anchorPoint = sizes[zoomLevel].width / 2;
+      taxi.marker.getIcon().scaledSize = sizes[zoomLevel];
+      taxi.marker.getIcon().anchor = { x: anchorPoint, y: anchorPoint };
+      //taxi.marker.getIcon().scaledSize = new google.maps.Size(Math.pow(2,zoomLevel-10), Math.pow(2,zoomLevel-10));
     }
 
 
@@ -256,7 +247,7 @@
     // called when a message arrives
     function onMessageArrived(msg) {
       if (msg.destinationName.indexOf("taxinyc/ops/ride/updated/v1") == 0) {
-          parseRideUpdatedMessage(msg);
+        parseRideUpdatedMessage(msg);
       }
     }
 
@@ -287,25 +278,25 @@
         messageWindow.setContent(message.getBinaryAttachment());
         messageWindow.open(map,vehicle["marker"]);
         google.maps.event.addListener(messageWindow, 'closeclick', function() {
-          vehicle["marker"].setAnimation(google.maps.Animation.NONE);
+          vehicle.marker.setAnimation(google.maps.Animation.NONE);
         });
-        vehicle["marker"].setIcon(icon_bus_med_msg);
-        vehicle["marker"].setAnimation(google.maps.Animation.BOUNCE);
-        vehicle["marker"].setZIndex(globalZindex+100);  // pop to top
+        vehicle.marker.setIcon(icon_bus_med_msg);
+        vehicle.marker.setAnimation(google.maps.Animation.BOUNCE);
+        vehicle.marker.setZIndex(globalZindex+100);  // pop to top
       } else if (levels[1] == "route") {
         for (var i=1000;i<10000;i++) { //var key in vehicles) {
           if (vehicles[i] != null && vehicles[i]["route"] == levels[2]) {
-            vehicles[i]["marker"].setIcon(icon_bus_med_msg);
-            vehicles[i]["marker"].setZIndex(globalZindex++);  // pop to top
-            vehicles[i]["marker"].setAnimation(google.maps.Animation.BOUNCE);
+            vehicles[i].marker.setIcon(icon_bus_med_msg);
+            vehicles[i].marker.setZIndex(globalZindex++);  // pop to top
+            vehicles[i].marker.setAnimation(google.maps.Animation.BOUNCE);
           }
         }
       } else if (levels[1] == "broadcast") {
         for (var i=1000;i<10000;i++) { //var key in vehicles) {
           if (vehicles[i] != null) {
-            vehicles[i]["marker"].setIcon(icon_bus_med_msg);
-            vehicles[i]["marker"].setZIndex(globalZindex++);  // pop to top
-            vehicles[i]["marker"].setAnimation(google.maps.Animation.BOUNCE);
+            vehicles[i].marker.setIcon(icon_bus_med_msg);
+            vehicles[i].marker.setZIndex(globalZindex++);  // pop to top
+            vehicles[i].marker.setAnimation(google.maps.Animation.BOUNCE);
           }
         }
       } else if (levels[1] == "dispatch") {
@@ -318,7 +309,7 @@
       var contentString = '<div id="content">';
       var taxi = vehicles[vehNum];
       var payload = taxi.payload;
-      console.log(payload);
+      //console.log(payload);
       //return;
       contentString = '<h2 id="firstHeading" class="firstHeading">Driver: '+payload.driver.first_name+' '+payload.driver.last_name+'</h2>' +
           '<div id="bodyContent"><p>' +
@@ -347,58 +338,66 @@
       //console.log(payload);
       //console.log(Math.floor(payload.heading / 22.5));
       var vehNum = payload.driver.driver_id;
-      var vehicle;  // for later
+      var taxi;  // for later
       // now, have we seen this guy before?
       if (!(vehNum in vehicles)) {
         vehicles[vehNum] = {}; // create new hash
-        vehicle = vehicles[vehNum];
-        vehicle["marker"] = new google.maps.Marker({
+        taxi = vehicles[vehNum];
+        taxi["marker"] = new google.maps.Marker({
           zIndex: globalZindex++,
           //label: { text: "asfasdfasdf" }
         });
         // if they click the icon, pop up a window
-        google.maps.event.addListener(vehicle.marker, 'click', function() {
-          console.log("I GOT CLICKED!");
-          //console.log(payload.driver);
-          vehicle.marker.setZIndex(globalZindex++);  // pop to top
+        google.maps.event.addListener(taxi.marker, 'click', function() {
+          taxi.marker.setZIndex(globalZindex++);  // pop to top
           //buildBusInfoWindowContent(vehNum);
-          if (vehicle.infoWindow != null) return;
-          vehicle.infoWindow = new google.maps.InfoWindow();
-          // populate with something
-          vehicle["infoWindow"].setContent(buildBusInfoWindowContent(vehNum));
-          vehicle.infoWindow.vehicle = vehicle;
-     //console.log(vehicle.infoWindow);
-          vehicle["infoWindow"].open(map, vehicle["marker"]);
-          google.maps.event.addListener(vehicle["infoWindow"], 'closeclick', function() {
-            vehicle["infoWindow"] = null;
+          if (taxi.infoWindow != null) {
+            taxi.infoWindow.setZIndex(globalZindex++);
+            return;
+          }
+          // var infoWindowOptions = {
+          //   disableAutoPan: true,
+          // }
+          taxi.infoWindow = new google.maps.InfoWindow({ disableAutoPan: true});
+          taxi.infoWindow.setZIndex(globalZindex++);
+          taxi.infoWindow.setContent(buildBusInfoWindowContent(vehNum));
+          taxi.infoWindow.taxi = taxi;
+          taxi.infoWindow.open(map, taxi.marker);
+          google.maps.event.addListener(taxi["infoWindow"], 'closeclick', function() {
+            taxi.infoWindow = null;
           });
+          infoWindows.push(taxi.infoWindow);
+          if (infoWindows.length > 5) {
+            var oldInfo = infoWindows.shift(1);
+            oldInfo.taxi.infoWindow = null;
+            oldInfo.close();
+          }
         });
       }
       // now we've inserted the new guy for sure
-      vehicle = vehicles[vehNum];
-      //lat = lat + vehicle["latOff"];
-      //lon += vehicle["lonOff"];
+      taxi = vehicles[vehNum];
+      //lat = lat + taxi["latOff"];
+      //lon += taxi["lonOff"];
       var lat = payload.latitude;
       var lon = payload.longitude;
 
-      vehicle["pos"] = new google.maps.LatLng(lat, lon);
+      taxi["pos"] = new google.maps.LatLng(lat, lon);
 
-      vehicle["marker"].setPosition(vehicle["pos"]);
-      vehicle["marker"].setAnimation(google.maps.Animation.NONE);
-      //vehicle.marker.setIcon(icon_bus_med_ok);
-      //vehicle.marker.setIcon(icon_taxi_64[Math.floor((payload.heading +11.25) / 22.5) % 16]);
+      taxi.marker.setPosition(taxi["pos"]);
+      taxi.marker.setAnimation(google.maps.Animation.NONE);
+      
 
-      vehicle["payload"] = payload;
+      taxi["payload"] = payload;
 
-      vehicle["marker"].setOpacity(1);
+      taxi.marker.setOpacity(1);
       setTaxiIcon(vehNum);
-      if (vehicle["marker"].getMap() == null) {  // this is needed to prevent flickering, rather than just setting the map explicitly
-        vehicle["marker"].setMap(map);
+      if (taxi.marker.getMap() == null) {  // this is needed to prevent flickering, rather than just setting the map explicitly
+        taxi.marker.setMap(map);
       }
-      vehicle["ts"] = Date.now();
-      if (vehicle.infoWindow != null) {
+      taxi["ts"] = Date.now();
+      if (taxi.infoWindow != null) {
         // update it
-        vehicle.infoWindow.setContent(buildBusInfoWindowContent(vehNum));
+        taxi.infoWindow.setContent(buildBusInfoWindowContent(vehNum));
       }
     }  // end parseRideUpdatedMessage
 
@@ -411,7 +410,7 @@
 <body>
 
   <div id="map-canvas"></div>
-  <div id="over_map_tl">
+  <!--div id="over_map_tl">
     <h3>Filtering:</h3>
     <table>
       <tr>
@@ -421,8 +420,8 @@
         </td>
       </tr>
     </table>
+  </div-->
 
-  </div>
   <div id="over_map_tr">
     <h1>Modern NYC Connected Taxi Demo</h1>
   </div>
