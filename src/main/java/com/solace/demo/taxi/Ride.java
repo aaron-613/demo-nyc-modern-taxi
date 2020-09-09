@@ -130,6 +130,8 @@ public class Ride implements Runnable {
                     .append(passenger.getId()).append('/')
                     .append(String.format("%010.5f",point.x)).append('/')
                     .append(String.format("%09.5f",point.y));
+            String payload = getPayload("accepted");
+            msg.setText(payload);
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
             
         } catch (RuntimeException e) {
@@ -201,8 +203,12 @@ public class Ride implements Runnable {
     }
     
     
-    
-    public String getPayload(String rideStatus) {
+    /**
+     * 
+     * @param rideStatus one of "accepted", "pickup", "enroute", "dropoff"
+     * @return
+     */
+    public String getPayload(final String rideStatus) {
         // {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00",...
         //      "meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
         JsonBuilderFactory factory = Json.createBuilderFactory(Collections.emptyMap());
