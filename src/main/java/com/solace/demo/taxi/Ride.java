@@ -114,14 +114,24 @@ public class Ride implements Runnable {
         try {
             TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
             //taxinyc/ops/ride/called/v1/${car_class}/${passenger_id}/${pick_up_longitude}/${pick_up_latitude}
-            final String baseTopic = "taxinyc/ops/ride/called/v1/";
-            StringBuilder topicSb = new StringBuilder(baseTopic);
+            StringBuilder topicSb = new StringBuilder("taxinyc/ops/ride/called/v1/");
             Point2D.Float point = route.coords.get(0);  // first coord
             topicSb.append(driver.getCarClass()).append('/')
                     .append(passenger.getId()).append('/')
                     .append(String.format("%010.5f",point.x)).append('/')
                     .append(String.format("%09.5f",point.y));
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
+            msg.reset();
+            // now, send the "response" or "reply"
+            // topic = taxinyc/ops/ride/updated/v1/accepted/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
+            topicSb = new StringBuilder("taxinyc/ops/ride/updated/v1/accepted/");
+            point = route.coords.get(Math.min(5,route.coords.size()));  // up to 5 "ticks" away
+            topicSb.append(driver.getId()).append('/')
+                    .append(passenger.getId()).append('/')
+                    .append(String.format("%010.5f",point.x)).append('/')
+                    .append(String.format("%09.5f",point.y));
+            GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
+            
         } catch (RuntimeException e) {
             // shouldn't have anything thrown from here
             logger.warn("HEY! Had a runtime exception thrown from makeRideRequest: ",e);
