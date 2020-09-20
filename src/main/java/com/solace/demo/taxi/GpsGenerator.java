@@ -253,8 +253,24 @@ public enum GpsGenerator {
 //                                ClientName clientName = JCSMPFactory.onlyInstance().createClientName(origMsg.getSenderId());
                                 ClientName clientName = JCSMPFactory.onlyInstance().createClientName(solClientName);
 
-                                Topic sub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/>");
+                                Topic sub;
+                                if (solClientName.startsWith("#mqtt/")) {
+                                    // need to use the SMF equivalent for "#"
+                                    // https://docs.solace.com/Open-APIs-Protocols/MQTT/MQTT-Topics.htm#Using
+                                    sub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/"+(char)3);
+                                } else {
+                                    // ">" wildcard only works for SMF clients
+                                    sub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/>");
+                                }
                                 try {
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/a/b/"+p.getId()),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/a/b/"+p.getId()+"/abc"),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/a/b/"+p.getId()+"#"),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/+/+/"+p.getId()+"#"),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"#"),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+(char)3),JCSMPSession.WAIT_FOR_CONFIRM);
+                                    //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/"+(char)3),JCSMPSession.WAIT_FOR_CONFIRM);
                                     session.addSubscription(clientName,sub,JCSMPSession.WAIT_FOR_CONFIRM);
                                 } catch (JCSMPException e) {
                                     logger.warn("COuld not add a sub for "+clientName,e);
