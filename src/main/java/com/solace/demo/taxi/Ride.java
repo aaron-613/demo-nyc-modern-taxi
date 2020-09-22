@@ -118,8 +118,8 @@ public class Ride implements Runnable {
             Point2D.Float point = route.coords.get(0);  // first coord
             topicSb.append(driver.getCarClass()).append('/')
                     .append(passenger.getId()).append('/')
-                    .append(String.format("%010.5f",point.x)).append('/')
-                    .append(String.format("%09.5f",point.y));
+                    .append(String.format("%010.5f",point.y)).append('/')
+                    .append(String.format("%09.5f",point.x));
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
             msg.reset();
             // now, send the "response" or "reply"
