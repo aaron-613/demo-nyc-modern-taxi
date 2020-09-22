@@ -185,8 +185,8 @@ public class Ride implements Runnable {
             topicSb.append(rideStatus).append('/')
                     .append(driver.getId()).append('/')
                     .append(passenger.getId()).append('/')
-                    .append(String.format("%010.5f",point.x)).append('/')
-                    .append(String.format("%09.5f",point.y));
+                    .append(String.format("%010.5f",point.y)).append('/')
+                    .append(String.format("%09.5f",point.x));
             
             String topic = topicSb.toString();
             String payload = getPayload(rideStatus);
