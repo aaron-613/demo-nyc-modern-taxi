@@ -44,7 +44,7 @@
   <button id="button" class="button" onClick="pause();">Pause</button>
 </div>
 <h2>MQTT NYC Modern Taxi - Demo Client app</h2>
-
+<br/>
 <script>
 
   // TODO - UPDATE CREDENTIALS, HOSTS, PORT, TOPIC BELOW!!
@@ -73,18 +73,10 @@
   writeToScreen("Connecting to PubSub+ ...");
   client.connect(connectOptions);
  
- // called when the client connects
+  // called when the client connects
   function onConnect() {
     writeToScreen("Connected. Requesting Client name...");
-    client.subscribe("$SYS/client/client-name");
-
-    var payload = {};
-    payload['name'] = "Aaron";
-    payload['solClientName'] = "adsf";
-    //var message = new Paho.MQTT.Message(JSON.stringify(payload));
-    //message.destinationName = "qr/ori2/"+linkUid;
-    //chosen.send(message);
-    //writeToScreen(JSON.stringify(payload));
+    client.subscribe("$SYS/client/client-name");  // find out this Solace MQTT client's name
   }
 
   // called when the client loses its connection
@@ -98,9 +90,16 @@
   function onMessageArrived(message) {
     if (message.destinationName == "$SYS/client/client-name") {
       // special Solace MQTT feature to find out client name, used for Subscription Manager
-      writeToScreen("Received Client name. Sending ride request...");
+      writeToScreen("Received Solace Client name.");
+      var person = prompt("Please enter your name to request a ride:", "Harry Potter");
+      if (person == null || person == "") {
+        // user cancelled the prompt
+        alert("Ok, no ride for you.");
+        return;
+      }
+      writeToScreen("Sending ride request...");
       var payload = {};
-      payload['name'] = "Aaron";
+      payload['name'] = person;
       payload['solClientName'] = message.payloadString;
       var message = new Paho.MQTT.Message(JSON.stringify(payload));
       message.destinationName = "taxinyc/ops/ride/called/demo";
@@ -109,7 +108,7 @@
     }
     if (!isPaused) {
       // only write to the screen if we're not paused; otherwise, throw away
-      writeToScreen("onMessageArrived: topic='"+message.destinationName+"',&nbsp; payload='"+message.payloadString+"'");
+      writeToScreen("<b>onMessageArrived:</b> topic='"+message.destinationName+"',&nbsp; payload='"+message.payloadString+"'");
       var payload = JSON.parse(message.payloadString);
       // do something else with decoded payload..?
     }
