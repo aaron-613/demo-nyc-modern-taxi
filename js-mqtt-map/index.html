@@ -82,6 +82,8 @@
     var globalZindex = 100;
 
     var vehicles = {};  // keyed by driverID
+    var requests = {};  // keyed by passengerID
+
     // make the taxis fade out
     setInterval(function() {
       for (var key in vehicles) {
@@ -167,7 +169,13 @@
       var taxi = vehicles[vehNum];
       var payload = taxi.payload;
       if (payload.ride_status == "pickup") {
-        taxi.marker.setIcon(icon_hail);
+        taxi.marker.setIcon(icon_start);
+        var passengerId = payload.passenger.passenger_id;
+console.log("removing request: "+passengerId);
+console.log(passengerId);
+        if (!requests.hasOwnProperty(passengerId)) return;
+        requests[passengerId].setMap(null);
+        delete requests[passengerId];
         return;
       } else if (payload.ride_status == "dropoff") {
         taxi.marker.setIcon(icon_finish);
@@ -247,13 +255,13 @@
       var payload = taxi.payload;
       //console.log(payload);
       //return;
-      contentString = '<h2 id="firstHeading" class="firstHeading">Driver: '+payload.driver.first_name+' '+payload.driver.last_name+'</h2>' +
+      contentString = '<h2 id="firstHeading" class="firstHeading">Rider: '+payload.passenger.first_name+' '+payload.passenger.last_name+'</h2>' +
           '<div id="bodyContent"><p>' +
-          '<b>Rider:</b> ' + payload.passenger.first_name+' '+payload.passenger.last_name + '<br/>' +
-          '<b>Current Position:</b> ' + payload.latitude.toFixed(4) + 'N,' + payload.longitude.toFixed(4) + 'W<br/>' +
-          //'<b>Status:</b> ' + bus["payload"].status + '<br/>' +
-          '<b>Speed:</b> ' + payload.speed +
-          // '<b>Destination:</b> ' + endAddr +
+          '<b>Driver:</b> ' + payload.driver.first_name+' '+payload.driver.last_name + 
+          '<br/><b>Current Position:</b> ' + payload.latitude.toFixed(4) + 'N,' + payload.longitude.toFixed(4) + 'W' +
+          //'<b>Status:</b> ' + bus["payload"].status +
+          '<br/><b>Speed:</b> ' + payload.speed +
+          '<br/><b>Heading:</b> ' + payload.heading +
           '</p>';
       // if (img != null) {
       //   contentString += '<p align="center"><img src="' + img + '"></p>';
@@ -343,21 +351,19 @@
       //console.log("Received message on: "+msg.destinationName+"  ("+msg.payloadString.length+" bytes)");
       var levels = msg.destinationName.split('/');
       // taxinyc/ops/ride/called/v1/Minivan/38225084/-073.91111/040.77583
-console.log(levels);
+      //console.log(levels);
+      var passengerId = levels[6];
       var lat = parseFloat(levels[7]);
       var lon = parseFloat(levels[8]);
-console.log(lat+", "+lon);
-
       var hail = new google.maps.Marker({
         zIndex: globalZindex++,
         position: new google.maps.LatLng(lat, lon),
         map: map,
-        icon: icon_start
+        icon: icon_hail,
       });
-      hail.setPosition(new google.maps.LatLng(lat,lon));
-console.log(hail);
-
-
+      requests[passengerId] = hail;
+console.log("starting request: "+passengerId);
+console.log(passengerId);
     }  // end parseRideCalledMessage
 
 
