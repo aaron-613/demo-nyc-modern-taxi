@@ -253,14 +253,18 @@ public enum GpsGenerator {
 //                                ClientName clientName = JCSMPFactory.onlyInstance().createClientName(origMsg.getSenderId());
                                 ClientName clientName = JCSMPFactory.onlyInstance().createClientName(solClientName);
 
-                                Topic sub;
+                                Topic routeSub;  // the subscription that receivers all the route information (accepted, pickup, enroute, dropoff)
+                                Topic reqSub;    // the sub that just receives the generated ride request message
                                 if (solClientName.startsWith("#mqtt/")) {
                                     // need to use the SMF equivalent for "#"
                                     // https://docs.solace.com/Open-APIs-Protocols/MQTT/MQTT-Topics.htm#Using
-                                    sub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/"+(char)3);
+                                    routeSub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/"+(char)3);
+                                    // taxinyc/ops/ride/called/v1/${car_class}/${passenger_id}/${pick_up_longitude}/${pick_up_latitude}
+                                    reqSub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/called/v1/*/"+p.getId()+"/"+(char)3);
                                 } else {
                                     // ">" wildcard only works for SMF clients
-                                    sub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/>");
+                                    routeSub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/>");
+                                    reqSub = JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/called/v1/*/"+p.getId()+"/>");
                                 }
                                 try {
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/a/b/"+p.getId()),JCSMPSession.WAIT_FOR_CONFIRM);
@@ -271,7 +275,8 @@ public enum GpsGenerator {
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"#"),JCSMPSession.WAIT_FOR_CONFIRM);
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+(char)3),JCSMPSession.WAIT_FOR_CONFIRM);
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/"+(char)3),JCSMPSession.WAIT_FOR_CONFIRM);
-                                    session.addSubscription(clientName,sub,JCSMPSession.WAIT_FOR_CONFIRM);
+                                    session.addSubscription(clientName,routeSub,JCSMPSession.WAIT_FOR_CONFIRM);
+                                    session.addSubscription(clientName,reqSub,JCSMPSession.WAIT_FOR_CONFIRM);
                                 } catch (JCSMPException e) {
                                     logger.warn("COuld not add a sub for "+clientName,e);
                                     return;  // don't add a new ride for a client that doesn't exist!
