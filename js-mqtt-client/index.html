@@ -50,12 +50,10 @@
   // TODO - UPDATE CREDENTIALS, HOSTS, PORT, TOPIC BELOW!!
   const LINES_TO_SHOW = 10;
   var isPaused = false;
-  var host = "mr-g3jw4qykb4h.messaging.solace.cloud";
+  var host = "taxi.messaging.solace.cloud";
   var port = 8443;
   var username = "public-taxi";
   var password = "iliketaxis";
-  //var username = "solace-cloud-client";
-  //var password = "1ki8fqasgc99jvf54akg29m42p";
   var useSSL = true; 
   var client_id = ""+(Math.random() + 1).toString(36).substring(2,10);  // 8 "random" [0-9a-z]
   client = new Paho.MQTT.Client(host,Number(port),client_id);

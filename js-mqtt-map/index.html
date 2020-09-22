@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Solace Real-time Connected Buses Demo</title>
+  <title>Modern NYC Taxi Demo</title>
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8">
   <style>
@@ -70,37 +70,6 @@
       margin-top: 1px;
       margin-bottom: 1px;
     }
-    .labels {
-      color: blue;
-      background-color: white;
-      font-family: "Verdana", "Arial", sans-serif;
-      font-size: 10px;
-      text-align: center;
-      width: 100px;
-      border: 1px solid blue; /*  white-space: nowrap; */
-    }
-
-    .labels3 {
-      background-color: rgba(255, 255, 255, 0.7);
-      font-family: "Arial", sans-serif;
-      font-size: 14px;
-      font-weight: bold;
-      text-align: center;
-      width: 120px;
-      border: 1px solid black;
-    }
-
-    .labels2 {
-      color: rgba(0, 0, 100, 1);
-      background-color: rgba(255, 255, 255, 0.7);
-      font-family: "Arial", sans-serif;
-      font-size: 10px;
-      font-weight: bold;
-      text-align: left;
-      width: 80px;
-      border: 1px solid rgba(0, 0, 100, 1);
-      padding-left: 1px;
-    }
 
   </style>
   <script>
@@ -136,6 +105,9 @@
     }, 1000);
 
     var icon_bus_med_fault = { url: "bus_med_fault.png", anchor: { x: 16, y: 16 }};
+    var icon_hail = { url: "gfx/hail.png", anchor: { x: 23, y: 61 }};
+    var icon_start = { url: "gfx/start.png", anchor: { x: 21, y: 62 }};
+    var icon_finish = { url: "gfx/finish.png", anchor: { x: 7, y: 62 }};
 
     var icon_taxi_64 = [];
     for (var i=0;i<36;i++) {
@@ -194,6 +166,13 @@
     function setTaxiIcon(vehNum) {
       var taxi = vehicles[vehNum];
       var payload = taxi.payload;
+      if (payload.ride_status == "pickup") {
+        taxi.marker.setIcon(icon_hail);
+        return;
+      } else if (payload.ride_status == "dropoff") {
+        taxi.marker.setIcon(icon_finish);
+        return;
+      }
       //var status = vehicles[vehNum]["payload"].status;
       //taxi.marker.setIcon(icon_taxi_64[Math.floor((payload.heading +11.25) / 22.5) % 16]);
       //var headingIndex = Math.floor((payload.heading +11.25) / 22.5) % 16;
@@ -232,7 +211,7 @@
     function onConnect() {
       writeConsole("Connected!");
       isConnected = true;
-      mqttClient.subscribe("gps/#");
+      //mqttClient.subscribe("gps/#");
       mqttClient.subscribe("taxinyc/#");
     }
 
@@ -249,6 +228,9 @@
       try {
         if (msg.destinationName.indexOf("taxinyc/ops/ride/updated/v1") == 0) {
           parseRideUpdatedMessage(msg);
+	} else if (msg.destinationName.indexOf("taxinyc/ops/ride/called/v1") == 0) {
+          parseRideCalledMessage(msg);
+          console.log(msg.destinationName);
         }
       } catch (e) {
         console.log("Had an issue with received message: topic="+msg.destinationName+", payload="+msg.payload);
@@ -258,57 +240,6 @@
 
 
     ////////////////////// Callback functions //////////////////////////////////////////////////////////////////////////////
-
-    getTextPayload = function(message) {
-      if (message.getType() == solace.MessageType.TEXT) {
-        return message.getSdtContainer().getValue();
-      } else {
-        return message.getBinaryAttachment(); // binary attachment, all text
-      }
-    }
-
-    parseCommsMessage = function(message) {
-      var levels = message.getDestination().getName().split("/"); // topic levels   geo/bus/1001/001.308820/0103.876270/007/OK  --> geo/bus/VehNum/lat/lon/Route/Status
-      // comms/bus/1234
-      // comms/route/012
-      // comms/broadcast
-      // comms/dispatch
-      if (levels[1] == "bus") {
-        var vehicle = vehicles[levels[2]];
-        if (vehicle == null) {
-          alert("No vehicle "+levels[2]+" present.");
-          return;
-        }
-        var messageWindow = new google.maps.InfoWindow();
-        messageWindow.setContent(message.getBinaryAttachment());
-        messageWindow.open(map,vehicle["marker"]);
-        google.maps.event.addListener(messageWindow, 'closeclick', function() {
-          vehicle.marker.setAnimation(google.maps.Animation.NONE);
-        });
-        vehicle.marker.setIcon(icon_bus_med_msg);
-        vehicle.marker.setAnimation(google.maps.Animation.BOUNCE);
-        vehicle.marker.setZIndex(globalZindex+100);  // pop to top
-      } else if (levels[1] == "route") {
-        for (var i=1000;i<10000;i++) { //var key in vehicles) {
-          if (vehicles[i] != null && vehicles[i]["route"] == levels[2]) {
-            vehicles[i].marker.setIcon(icon_bus_med_msg);
-            vehicles[i].marker.setZIndex(globalZindex++);  // pop to top
-            vehicles[i].marker.setAnimation(google.maps.Animation.BOUNCE);
-          }
-        }
-      } else if (levels[1] == "broadcast") {
-        for (var i=1000;i<10000;i++) { //var key in vehicles) {
-          if (vehicles[i] != null) {
-            vehicles[i].marker.setIcon(icon_bus_med_msg);
-            vehicles[i].marker.setZIndex(globalZindex++);  // pop to top
-            vehicles[i].marker.setAnimation(google.maps.Animation.BOUNCE);
-          }
-        }
-      } else if (levels[1] == "dispatch") {
-        console.log(message.payload);
-        alert(getTextPayload(message));
-      }
-    }
 
     function buildBusInfoWindowContent(vehNum) {
       var contentString = '<div id="content">';
@@ -345,7 +276,7 @@
       var vehNum = payload.driver.driver_id;
       var taxi;  // for later
       // now, have we seen this guy before?
-      if (!(vehNum in vehicles)) {
+      if (!(vehNum in vehicles)) {  // keyed by driverID
         vehicles[vehNum] = {}; // create new hash
         taxi = vehicles[vehNum];
         taxi["marker"] = new google.maps.Marker({
@@ -387,7 +318,6 @@
       var lon = payload.longitude;
 
       taxi["pos"] = new google.maps.LatLng(lat, lon);
-
       taxi.marker.setPosition(taxi["pos"]);
       taxi.marker.setAnimation(google.maps.Animation.NONE);
       
@@ -405,6 +335,30 @@
         taxi.infoWindow.setContent(buildBusInfoWindowContent(vehNum));
       }
     }  // end parseRideUpdatedMessage
+
+
+
+    // received when the taxi is moving
+    function parseRideCalledMessage(msg) {
+      //console.log("Received message on: "+msg.destinationName+"  ("+msg.payloadString.length+" bytes)");
+      var levels = msg.destinationName.split('/');
+      // taxinyc/ops/ride/called/v1/Minivan/38225084/-073.91111/040.77583
+console.log(levels);
+      var lat = parseFloat(levels[7]);
+      var lon = parseFloat(levels[8]);
+console.log(lat+", "+lon);
+
+      var hail = new google.maps.Marker({
+        zIndex: globalZindex++,
+        position: new google.maps.LatLng(lat, lon),
+        map: map,
+        icon: icon_start
+      });
+      hail.setPosition(new google.maps.LatLng(lat,lon));
+console.log(hail);
+
+
+    }  // end parseRideCalledMessage
 
 
 
