@@ -84,8 +84,8 @@ public class Driver {
     /**
      * Returns rating, rounded to 2 decimals
      */
-    public float getRating() {
-        return Math.round(totalRatings * 100f / totalTrips) / 100f;  // round to 2 decimal places
+    public double getRating() {
+        return Math.round(totalRatings * 100.0 / totalTrips) / 100.0;  // round to 2 decimal places
     }
     
     @Override
