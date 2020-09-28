@@ -118,8 +118,8 @@ public class Ride implements Runnable {
             Point2D.Float point = route.coords.get(0);  // first coord
             topicSb.append(driver.getCarClass()).append('/')
                     .append(String.format("%08d",passenger.getId())).append('/')
-                    .append(String.format("%010.5f",point.y)).append('/')
-                    .append(String.format("%09.5f",point.x));
+                    .append(String.format("%09.5f",point.y)).append('/')
+                    .append(String.format("%010.5f",point.x));
             // NEED TO ADD THE PAYLOAD!!!!
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
             msg.reset();
@@ -129,8 +129,8 @@ public class Ride implements Runnable {
             point = route.coords.get(Math.min(5,route.coords.size()));  // up to 5 "ticks" away
             topicSb.append(String.format("%08d",driver.getId())).append('/')
                     .append(String.format("%08d",passenger.getId())).append('/')   // use the full-width, 8-char version
-                    .append(String.format("%010.5f",point.x)).append('/')
-                    .append(String.format("%09.5f",point.y));
+                    .append(String.format("%09.5f",point.x)).append('/')
+                    .append(String.format("%010.5f",point.y));
             String payload = getPayload("accepted");
             msg.setText(payload);
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
@@ -186,8 +186,8 @@ public class Ride implements Runnable {
             topicSb.append(rideStatus).append('/')
                     .append(String.format("%08d",driver.getId())).append('/')     // use the full-width, 8-char version
                     .append(String.format("%08d",passenger.getId())).append('/')  // use the full-width, 8-char version
-                    .append(String.format("%010.5f",point.y)).append('/')
-                    .append(String.format("%09.5f",point.x));
+                    .append(String.format("%09.5f",point.y)).append('/')
+                    .append(String.format("%010.5f",point.x));
             
             String topic = topicSb.toString();
             String payload = getPayload(rideStatus);
