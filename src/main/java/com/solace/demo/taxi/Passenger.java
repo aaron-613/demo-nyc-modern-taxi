@@ -9,7 +9,7 @@ public class Passenger {
         ;
     }
     
-    private final String id;
+    private final long id;
     private final String firstName;
     private final String lastName;
     private final boolean human;
@@ -18,7 +18,7 @@ public class Passenger {
     
     
     private Passenger(String firstName, String lastName, boolean human) {
-        this.id = String.format("%08d",(int)(Math.random()*100_000_000));  // always assigned a random ID
+        this.id = (int)(Math.random()*100_000_000);  // always assigned a random ID
         this.firstName = firstName;
         this.lastName = lastName;
         this.human = human;
@@ -37,7 +37,7 @@ public class Passenger {
         return new Passenger(split[0],Names.randomLastName(),true);
     }
     
-    public String getId() {
+    public long getId() {
         return id;
     }
     

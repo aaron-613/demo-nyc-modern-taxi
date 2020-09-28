@@ -13,7 +13,7 @@ public class Driver {
     }
     
     
-    private final String id;  // 8 digit integer: 00000000 .. 99999999
+    private final long id;  // 8 digit integer: 00000000 .. 99999999
     private State state = State.IDLE;
     private final String firstName;
     private final String lastName;
@@ -31,7 +31,7 @@ public class Driver {
 
     public static final String[] CAR_TYPES = new String[] { "Sedan", "SUV", "Minivan", "Coupe" };
     
-    private Driver(String id, String firstName, String lastName) {
+    private Driver(long id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -41,17 +41,17 @@ public class Driver {
     }
     
     public static Driver newInstance() {
-        String id = String.format("%08d",nextDriverId.getAndIncrement());
+        long id = nextDriverId.getAndIncrement();
         //String id = ""+(int)(Math.random()*100_000_000);
         String first = FIRSTS[(int)(Math.random()*FIRSTS.length)];
         String last = LASTS[(int)(Math.random()*LASTS.length)];
         return new Driver(id,first,last);
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
-
+    
     public State getState() {
         return state;
     }

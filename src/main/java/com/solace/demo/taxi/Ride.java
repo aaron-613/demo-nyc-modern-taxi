@@ -117,17 +117,18 @@ public class Ride implements Runnable {
             StringBuilder topicSb = new StringBuilder("taxinyc/ops/ride/called/v1/");
             Point2D.Float point = route.coords.get(0);  // first coord
             topicSb.append(driver.getCarClass()).append('/')
-                    .append(passenger.getId()).append('/')
+                    .append(String.format("%08d",passenger.getId())).append('/')
                     .append(String.format("%010.5f",point.y)).append('/')
                     .append(String.format("%09.5f",point.x));
+            // NEED TO ADD THE PAYLOAD!!!!
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
             msg.reset();
             // now, send the "response" or "reply"
             // topic = taxinyc/ops/ride/updated/v1/accepted/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
             topicSb = new StringBuilder("taxinyc/ops/ride/updated/v1/accepted/");
             point = route.coords.get(Math.min(5,route.coords.size()));  // up to 5 "ticks" away
-            topicSb.append(driver.getId()).append('/')
-                    .append(passenger.getId()).append('/')
+            topicSb.append(String.format("%08d",driver.getId())).append('/')
+                    .append(String.format("%08d",passenger.getId())).append('/')   // use the full-width, 8-char version
                     .append(String.format("%010.5f",point.x)).append('/')
                     .append(String.format("%09.5f",point.y));
             String payload = getPayload("accepted");
@@ -183,8 +184,8 @@ public class Ride implements Runnable {
             Point2D.Float point = route.coords.get(routePositionIndex);
     
             topicSb.append(rideStatus).append('/')
-                    .append(driver.getId()).append('/')
-                    .append(passenger.getId()).append('/')
+                    .append(String.format("%08d",driver.getId())).append('/')     // use the full-width, 8-char version
+                    .append(String.format("%08d",passenger.getId())).append('/')  // use the full-width, 8-char version
                     .append(String.format("%010.5f",point.y)).append('/')
                     .append(String.format("%09.5f",point.x));
             
