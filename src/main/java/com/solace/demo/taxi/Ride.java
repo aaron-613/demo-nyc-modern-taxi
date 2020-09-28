@@ -216,6 +216,7 @@ public class Ride implements Runnable {
         Point2D.Float point = route.coords.get(routePositionIndex);
         JsonObjectBuilder job = factory.createObjectBuilder();
         job.add("ride_id",rideId)
+                .add("information_source","RideDispatcher")
                 .add("point_idx",routePositionIndex)
                 .add("latitude",Math.round(point.y*1000000)/1000000.0)
                 .add("longitude",Math.round(point.x*1000000)/1000000.0)
