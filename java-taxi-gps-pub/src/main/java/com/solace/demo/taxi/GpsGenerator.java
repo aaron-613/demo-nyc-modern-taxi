@@ -166,11 +166,13 @@ public enum GpsGenerator {
             try {
                 producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
                     
+                    @SuppressWarnings("deprecation")
                     @Override
                     public void responseReceived(String messageID) {
                         // never called, Ex version instead
                     }
                     
+                    @SuppressWarnings("deprecation")
                     @Override
                     public void handleError(String messageID, JCSMPException cause, long timestamp) {
                         // never called, Ex version instead

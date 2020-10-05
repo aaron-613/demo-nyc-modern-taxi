@@ -34,7 +34,7 @@ dependencies {
 
 }
 
-java   {
+java {
   sourceCompatibility = 'VERSION_1_8'
   targetCompatibility = 'VERSION_1_8'
 }
@@ -45,6 +45,10 @@ eclipse {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
   }
+}
+
+tasks.withType(JavaCompile).all {
+  options.compilerArgs.add("-Xlint:all")
 }
 
 sourceSets {
