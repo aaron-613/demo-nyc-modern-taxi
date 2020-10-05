@@ -1,9 +1,9 @@
 # Ignore Gradle project-specific cache directory
-.gradle
+java-taxi-gps-pub/.gradle
 
 # Ignore Gradle build output directory
-build
-.classpath
-.project
-.settings/
-bin/
+java-taxi-gps-pub/build
+java-taxi-gps-pub/.classpath
+java-taxi-gps-pub/.project
+java-taxi-gps-pub/.settings/
+java-taxi-gps-pub/bin/
