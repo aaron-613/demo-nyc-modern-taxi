@@ -15,9 +15,9 @@ This demo has several parts.  They are itemized below.
 
 ## java-taxi-gps-pub
 
-The "backend" publisher that is generating all of the taxi GPS positions.  This data is based on the data of taxi rides release by NYC in 2019 (provide links).
+The "backend" publisher that is generating all of the taxi GPS positions.  This data is based on the data of taxi rides release by NYC in 2019 (provide links).  The application uses Solace JCSMP API for communication over Solace.
 
-The publisher also listens to "ride called" requests, and issues new Rides.
+The publisher also listens to "ride called" requests, and issues new Rides. This capability is provided by the Subscription Manager feature of Solace PubSub+.
 
 
 
