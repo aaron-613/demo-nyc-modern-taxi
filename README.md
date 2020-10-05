@@ -25,6 +25,7 @@ The publisher also listens to "ride called" requests, and issues new Rides.
 
 A simple JavaScript map application using Google Maps to visualize where all of the various taxis are. Uses Eclipse Paho MQTT libraries for communication over Solace.
 
+![Screenshot](https://github.com/aaron-613/demo-nyc-modern-taxi/blob/master/map.jpg "Screenshott")
 
 ## js-mqtt-client
 
