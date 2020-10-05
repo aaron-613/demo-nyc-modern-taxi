@@ -1,25 +1,35 @@
-# demo-nyc-modern-taxi-pub
+# demo-nyc-modern-taxi
 
-## To build / run
+Current (temporary) location: https://sg.solace.com/taxi/
 
-1. Clone the project
-2. `./gradlew clean assemble` on Linux/Mac terminal, or `.\gradlew.bat clean assemble` on Windows Command Prompt
-1. `cd build`
-1. `cd distribution`
-1. Unzip or UnTar demo-nyc-modern-taxi-pub archive
-1. `cd demo-nyc-modern-taxi-pub`
-1. `bin/demo-nyc-modern-taxi-pub <localhost> <vpnName> <username> [password]`
+This demo showcases many aspects of the Solace PubSub+ Platform, including but not limited to:
 
-## Notes
+ - Solace PubSub+ event broker communication
+ - Multi-Cloud deployment, currently running inside Azure and AWS
+ - Multi-protocol support, with Java SMF applications and MQTT WebSocket applications
+ - Integration with Kafka via Connectors
+ - Integration with SalesForce via Boomi
 
-- `GpsGenerator` is main file, loads in route data, connects to Solace
-- Currently hardcoded for 100 simutaneous routes at updates every 2 seconds
-   - ~ 50 msg/s
-- Currently using approximately 1400 fixed routes from Google PubSub taxi route dump
-- Currently randomizing Driver details (Driver's can be driving multiple rides), and Passengers aren't done yet
+This demo has several parts.  They are itemized below.
 
-## Misc
 
-We're going to use singe-precision (`float` not `double`) to store internally the coordinates for the routes:
-https://sites.google.com/site/trescopter/Home/concepts/required-precision-for-gps-calculations
+## java-taxi-gps-pub
+
+The "backend" publisher that is generating all of the taxi GPS positions.  This data is based on the data of taxi rides release by NYC in 2019 (provide links).
+
+The publisher also listens to "ride called" requests, and issues new Rides.
+
+
+
+## js-mqtt-map
+
+A simple JavaScript map application using Google Maps to visualize where all of the various taxis are. Uses Eclipse Paho MQTT libraries for communication over Solace.
+
+
+## js-mqtt-client
+
+A very basic "bare bones" MQTT JavaScript appliation that a user can "summon" or request rides from the backend GPS publisher.
+
+
+
 
