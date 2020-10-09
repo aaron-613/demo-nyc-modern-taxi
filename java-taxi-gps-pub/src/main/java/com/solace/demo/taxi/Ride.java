@@ -226,7 +226,7 @@ public class Ride implements Runnable {
                 .add("longitude",Math.round(point.x*1000000)/1000000.0)
 /* optional */  .add("heading",VehicleUtils.calcHeading(routeNum,routePositionIndex))
 /* optional */  .add("speed",VehicleUtils.calcSpeed(routeNum,routePositionIndex))
-                .add("timestamp",ZonedDateTime.now().format(FORMATTER))
+                .add("timestamp",ZonedDateTime.now(NYC_TZ).format(FORMATTER))
                 .add("meter_reading",Math.round(route.meterAmount.get(routePositionIndex)*100)/100.0)
                 .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
                 .add("ride_status",rideStatus)
