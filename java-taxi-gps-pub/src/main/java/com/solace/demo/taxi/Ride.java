@@ -32,7 +32,7 @@ public class Ride implements Runnable {
         FINISHED;
     }
     
-    //private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    private static final JsonBuilderFactory JSON_BUILDER_FACTORY = Json.createBuilderFactory(Collections.emptyMap());
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final ZoneId NYC_TZ = ZoneId.of("America/New_York");
 
@@ -113,7 +113,7 @@ public class Ride implements Runnable {
     /**
      * This is called when the ride object is first created by the GPS Publisher. It will send a "fake" ride request message, as if a human had done it
      */
-    public void makeRideRequest() {
+    public void makeRideCalled() {
         assert status == Status.NOT_STARTED;
         try {
             TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
@@ -124,7 +124,7 @@ public class Ride implements Runnable {
                     .append(String.format("%08d",passenger.getId())).append('/')
                     .append(String.format("%09.5f",point.y)).append('/')
                     .append(String.format("%010.5f",point.x));
-            // NEED TO ADD THE PAYLOAD!!!!
+            msg.setText(getRideCalledPayload());
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
             msg.reset();
             // now, send the "response" or "reply"
@@ -135,7 +135,7 @@ public class Ride implements Runnable {
                     .append(String.format("%08d",passenger.getId())).append('/')   // use the full-width, 8-char version
                     .append(String.format("%09.5f",point.x)).append('/')
                     .append(String.format("%010.5f",point.y));
-            String payload = getPayload("accepted");
+            String payload = getRideUpdatedPayload("accepted");
             msg.setText(payload);
             GpsGenerator.INSTANCE.sendMessage(msg,topicSb.toString());
             
@@ -146,6 +146,60 @@ public class Ride implements Runnable {
             
         }
     }
+
+    public String getRideCalledPayload() {
+        /*
+    {
+      "ridecalled_id": "23232323",
+      "information_source": "PassengerMobileApp",
+      "dropoff_latitude": 40.75473,
+      "dropoff_longitude": -73.98385,
+      "pickup_latitude": 40.75473,
+      "pickup_longitude": -73.98385,
+      "timestamp": "2020-06-03T16:51:47.292-04:00",
+      "passenger_count": 1,
+      "car_class": "SUV",
+      "passenger": {
+        "passenger_id": 2345243,
+        "first_name": "Jesse",
+        "last_name": "Menning",
+        "rating": 2.23
+      }
+    }
+         */
+        Point2D.Float dropOffPoint = route.coords.get(route.coords.size()-1);
+        Point2D.Float pickUpPoint = route.coords.get(0);
+        JsonObjectBuilder job = JSON_BUILDER_FACTORY.createObjectBuilder();
+        job.add("ridecalled_id",rideId)  // should be rideId?
+                .add("information_source","PassengerMobileApp")
+                .add("dropoff_latitude",Math.round(dropOffPoint.y*1000000)/1000000.0)
+                .add("dropoff_longitude",Math.round(dropOffPoint.x*1000000)/1000000.0)
+                .add("pickup_latitude",Math.round(pickUpPoint.y*1000000)/1000000.0)
+                .add("pickup_longitude",Math.round(pickUpPoint.x*1000000)/1000000.0)
+                .add("timestamp",ZonedDateTime.now(NYC_TZ).format(FORMATTER))
+                .add("passenger_count",route.passengerCount)
+                .add("car_class",getDriver().getCarClass())
+                .add("passenger",JSON_BUILDER_FACTORY.createObjectBuilder()
+                        .add("passenger_id",getPassenger().getId())
+                        .add("first_name",getPassenger().getFirstName())
+                        .add("last_name",getPassenger().getLastName())
+                        .add("rating",getPassenger().getRating()));
+
+        // how about pretty print instead??
+        StringWriter writer = new StringWriter();
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(JsonGenerator.PRETTY_PRINTING, true);
+        JsonWriterFactory writerFactory = Json.createWriterFactory(properties);
+        JsonWriter jsonWriter = writerFactory.createWriter(writer);
+        jsonWriter.writeObject(job.build());
+        jsonWriter.close();
+        return writer.toString();
+    }
+
+
+    
+    
+    
     
     public void tick() {
         try {
@@ -194,31 +248,30 @@ public class Ride implements Runnable {
                     .append(String.format("%010.5f",point.x));
             
             String topic = topicSb.toString();
-            String payload = getPayload(rideStatus);
+            String payload = getRideUpdatedPayload(rideStatus);
             msg.setText(payload);
             GpsGenerator.INSTANCE.sendMessage(msg,topic);
         } catch (Exception e) {
             logger.warn("Caught during tick() on "+this.toString(),e);
             try {
-                logger.warn(" with payload :"+getPayload("test"));
+                logger.warn(" with payload :"+getRideUpdatedPayload("test"));
             } catch (Exception e1) {
                 // silent... probably problem with something in the payload
             }
         }
     }
-    
+
     
     /**
      * 
      * @param rideStatus one of "accepted", "pickup", "enroute", "dropoff"
      * @return
      */
-    public String getPayload(final String rideStatus) {
+    public String getRideUpdatedPayload(final String rideStatus) {
         // {"ride_id":"00001e3e-00d4-4a13-a358-61ccc3a7e86a","point_idx":1,"latitude":40.7875,"longitude":-73.97457,"timestamp":"2020-06-04T20:35:17.83958-04:00",...
         //      "meter_reading":0.036538463,"meter_increment":0.036538463,"ride_status":"enroute","passenger_count":1}
-        JsonBuilderFactory factory = Json.createBuilderFactory(Collections.emptyMap());
         Point2D.Float point = route.coords.get(routePositionIndex);
-        JsonObjectBuilder job = factory.createObjectBuilder();
+        JsonObjectBuilder job = JSON_BUILDER_FACTORY.createObjectBuilder();
         job.add("ride_id",rideId)
                 .add("information_source","RideDispatcher")
                 .add("point_idx",routePositionIndex)
@@ -231,13 +284,13 @@ public class Ride implements Runnable {
                 .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
                 .add("ride_status",rideStatus)
                 .add("passenger_count",route.passengerCount)
-                .add("driver",factory.createObjectBuilder()
+                .add("driver",JSON_BUILDER_FACTORY.createObjectBuilder()
                         .add("driver_id",getDriver().getId())
                         .add("first_name",getDriver().getFirstName())
                         .add("last_name",getDriver().getLastName())
                         .add("rating",getDriver().getRating())
                         .add("car_class",getDriver().getCarClass()))
-                .add("passenger",factory.createObjectBuilder()
+                .add("passenger",JSON_BUILDER_FACTORY.createObjectBuilder()
                         .add("passenger_id",getPassenger().getId())
                         .add("first_name",getPassenger().getFirstName())
                         .add("last_name",getPassenger().getLastName())

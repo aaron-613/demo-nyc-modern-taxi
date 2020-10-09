@@ -142,7 +142,7 @@ public enum GpsGenerator {
         service.execute(new Runnable() {
             @Override
             public void run() {
-                ride.makeRideRequest();  // will publish a message, so this method (ideally) shouldn't be called from an API-owned thread
+                ride.makeRideCalled();  // will publish a message, so this method (ideally) shouldn't be called from an API-owned thread
             }
         });
     }
