@@ -2,7 +2,8 @@ package com.solace.demo.taxi;
 
 import java.awt.geom.Point2D;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +32,10 @@ public class Ride implements Runnable {
         FINISHED;
     }
     
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+    //private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final ZoneId NYC_TZ = ZoneId.of("America/New_York");
+
     private static final Logger logger = LogManager.getLogger(Ride.class);
 
     private final String rideId;
@@ -222,7 +226,7 @@ public class Ride implements Runnable {
                 .add("longitude",Math.round(point.x*1000000)/1000000.0)
 /* optional */  .add("heading",VehicleUtils.calcHeading(routeNum,routePositionIndex))
 /* optional */  .add("speed",VehicleUtils.calcSpeed(routeNum,routePositionIndex))
-                .add("timestamp",LocalDateTime.now().format(FORMATTER))
+                .add("timestamp",ZonedDateTime.now().format(FORMATTER))
                 .add("meter_reading",Math.round(route.meterAmount.get(routePositionIndex)*100)/100.0)
                 .add("meter_increment",Math.round(route.meterIncrement*10000000)/10000000.0)
                 .add("ride_status",rideStatus)
