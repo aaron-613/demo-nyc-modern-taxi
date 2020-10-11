@@ -33,7 +33,7 @@ public class Ride implements Runnable {
     }
     
     private static final JsonBuilderFactory JSON_BUILDER_FACTORY = Json.createBuilderFactory(Collections.emptyMap());
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     private static final ZoneId NYC_TZ = ZoneId.of("America/New_York");
 
     private static final Logger logger = LogManager.getLogger(Ride.class);
