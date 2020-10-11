@@ -13,6 +13,7 @@ public class Passenger {
     private final String firstName;
     private final String lastName;
     private final boolean human;
+    private final double rating;
 //    private Status status;
 //    private String routeId;
     
@@ -22,6 +23,7 @@ public class Passenger {
         this.firstName = firstName;
         this.lastName = lastName;
         this.human = human;
+        this.rating = (430 + Math.round(Math.random()*70.0))/100.0;  // something between 4.3 and 5.0
     }
     
     
@@ -60,8 +62,8 @@ public class Passenger {
         return human;
     }
     
-    public float getRating() {
-        return 4.3f + (float)(Math.random()*0.7);
+    public double getRating() {
+        return rating;
     }
 
     @Override
