@@ -1,0 +1,418 @@
+asyncapi: 2.0.0
+info:
+  x-application-class: unspecified
+  title: NYC Modern Taxi Co - Operations
+  description: >
+    This is a simulated event feed for the fictional "Modern NYC Taxi Co" for the purposes of learning.
+    The event feed simulates taxis streaming real-time events that include ride and location information.
+
+
+    - The dataset used originally comes from the NYC Taxi & Limousine Commission's 
+    open data release of more than a billion taxi ride records. 
+    Google then extended one week worth of data (3M taxi rides) from their original pickup 
+    and drop-off points into full routes in order to simulate a fleet of taxis roaming the streets of NYC 
+    as they define [here](https://codelabs.developers.google.com/codelabs/cloud-dataflow-nyc-taxi-tycoon/#0). 
+    Solace is streaming this data over Solace PubSub+ for you to analyze and process.
+
+
+    - **Terms of Use**: This dataset is publicly available for anyone to use under the following terms 
+    provided by the Dataset Source — [https://data.cityofnewyork.us/](https://data.cityofnewyork.us/) — 
+    and is provided "AS IS" without any warranty, 
+    express or implied, from Solace. Solace disclaims all liability for any damages, direct or indirect, 
+    resulting from the use of the dataset.
+
+  termsOfService: https://codelabs.solace.dev/codelabs/design-to-code-workshop/#1
+  contact:
+    name: Solace Community
+    url: https://solace.community
+    email: community@solace.com
+  x-view: client
+  version: 0.0.1
+components:
+  schemas:
+    RideUpdated:
+      default: {}
+      $schema: 'http://json-schema.org/draft-07/schema'
+      examples:
+        - ride_id: 545496c5-a334-4344-9662-efde68c0b98a
+          heading: 111
+          latitude: 40.75473
+          passenger_count: 1
+          point_idx: 107
+          information_source: RideDispatcher
+          speed: 8
+          driver:
+            driver_id: 1234132
+            rating: 4.75
+            last_name: Smith
+            car_class: SUV
+            first_name: Frank
+          passenger:
+            passenger_id: 2345243
+            rating: 2.23
+            last_name: Menning
+            first_name: Tamimi
+          meter_increment: 0.02278058
+          longitude: -73.98385
+          timestamp: '2020-06-03T16:51:47.292-04:00'
+          meter_reading: 2.4375222
+          ride_status: enroute
+      description: A RideUpdated Event represents the latest state of an individual taxi ride.
+      additionalProperties: true
+      type: object
+      title: The RideUpdated Event schema
+      properties:
+        ride_id:
+          default: ''
+          examples:
+            - 545496c5-a334-4344-9662-efde68c0b98a
+          description: A UUID identifying the ride.
+          type: string
+          title: The ride identifier
+          $id: '#/properties/ride_id'
+        heading:
+          default: 0
+          examples:
+            - 111
+          maximum: 359
+          description: 0-359 degrees approximate heading of the vehicle.
+          type: integer
+          title: The heading schema
+          minimum: 0
+          $id: '#/properties/heading'
+        latitude:
+          default: 0
+          examples:
+            - -40.75473
+          maximum: 90
+          description: Current latitude of the vehicle.
+          type: number
+          title: The latitude schema
+          minimum: -90
+          $id: '#/properties/latitude'
+        passenger_count:
+          default: 0
+          examples:
+            - 1
+          description: The number of passengers in the car during this ride.
+          type: integer
+          title: The passenger_count schema
+          minimum: 0
+          $id: '#/properties/passenger_count'
+        point_idx:
+          default: 0
+          examples:
+            - 107
+          description: >-
+            The update number for the ride. This increments for each RideUpdate
+            for a given ride.
+          type: integer
+          title: The point_idx schema
+          $id: '#/properties/point_idx'
+        information_source:
+          default: ''
+          examples:
+            - RideDispatcher
+          description: The app that sent this event.
+          type: string
+          title: The information_source schema
+          $id: '#/properties/information_source'
+        speed:
+          default: 0
+          examples:
+            - 20
+          description: Speed of the taxi in unknown units.
+          type: integer
+          title: The speed schema
+          minimum: 0
+          $id: '#/properties/speed'
+        driver:
+          default: {}
+          examples:
+            - driver_id: 1234132
+              rating: 4.73
+              last_name: Smith
+              car_class: SUV
+              first_name: Frank
+          description: Information about the driver.
+          additionalProperties: true
+          type: object
+          title: The driver schema
+          required:
+            - driver_id
+            - first_name
+            - last_name
+            - rating
+            - car_class
+          properties:
+            driver_id:
+              default: 0
+              examples:
+                - 1234132
+              description: A unique ID for the driver.
+              type: integer
+              title: The driver_id schema
+              $id: '#/properties/driver/properties/driver_id'
+            rating:
+              default: 0
+              examples:
+                - 4.32
+              maximum: 5
+              description: >-
+                The driver's current 5-star rating, showing 2 decimal places of
+                accuracy.
+              type: number
+              title: The rating schema
+              minimum: 0
+              $id: '#/properties/driver/properties/rating'
+            last_name:
+              default: ''
+              examples:
+                - Smith
+              description: The Driver's Last Name.
+              type: string
+              title: The last_name schema
+              $id: '#/properties/driver/properties/last_name'
+            car_class:
+              default: ''
+              examples:
+                - SUV
+                - Minivan
+                - Sedan
+                - Coupe
+              description: The class of the vehicle.
+              type: string
+              title: The car_class schema
+              $id: '#/properties/driver/properties/car_class'
+            first_name:
+              default: ''
+              examples:
+                - Frank
+              description: The Driver's first name.
+              type: string
+              title: The first_name schema
+              $id: '#/properties/driver/properties/first_name'
+          $id: '#/properties/driver'
+        passenger:
+          default: {}
+          examples:
+            - rating: 2.25
+              last_name: Menning
+              passenger_id: 2345243
+              first_name: Tamimi
+          description: Information about the Passenger.
+          additionalProperties: true
+          type: object
+          title: The passenger schema
+          required:
+            - passenger_id
+            - first_name
+            - last_name
+            - rating
+          properties:
+            rating:
+              default: 0
+              examples:
+                - 2.25
+              maximum: 5
+              description: >-
+                The passenger's current 5-star rating, showing 2 decimal places
+                of accuracy.
+              type: number
+              title: The rating schema
+              minimum: 0
+              $id: '#/properties/passenger/properties/rating'
+            last_name:
+              default: ''
+              examples:
+                - Menning
+              description: The passenger's last name.
+              type: string
+              title: The last_name schema
+              $id: '#/properties/passenger/properties/last_name'
+            passenger_id:
+              default: 0
+              examples:
+                - 2345243
+              description: A unique ID for the passenger.
+              type: integer
+              title: The passenger_id schema
+              $id: '#/properties/passenger/properties/passenger_id'
+            first_name:
+              default: ''
+              examples:
+                - Jesse
+              description: The passenger's first name.
+              type: string
+              title: The first_name schema
+              $id: '#/properties/passenger/properties/first_name'
+          $id: '#/properties/passenger'
+        meter_increment:
+          default: 0
+          examples:
+            - 0.02278058
+          description: The meter increment rate.
+          type: number
+          title: The meter_increment schema
+          $id: '#/properties/meter_increment'
+        longitude:
+          default: 0
+          examples:
+            - -123.98385
+          maximum: 180
+          description: Current longitude of the vehicle.
+          type: number
+          title: The longitude schema
+          minimum: -180
+          $id: '#/properties/longitude'
+        timestamp:
+          default: ''
+          examples:
+            - '2020-06-03T16:51:47.292-04:00'
+          description: The time the RideUpdate is being sent.
+          type: string
+          title: The timestamp schema
+          $id: '#/properties/timestamp'
+        meter_reading:
+          default: 0
+          examples:
+            - 2.42
+          description: >-
+            The current value of the taxi's meter, in dollars $.  Float value
+            will always be shown with 2 decimal places (cents).
+          type: number
+          title: The meter_reading schema
+          minimum: 0
+          $id: '#/properties/meter_reading'
+        ride_status:
+          default: ''
+          examples:
+            - enroute
+          description: The current status of the ride.
+          type: string
+          title: The ride_status schema
+          enum:
+            - accepted
+            - pickup
+            - enroute
+            - dropoff
+          $id: '#/properties/ride_status'
+      $id: 'http://example.com/example.json'
+  messages:
+    RideUpdated:
+      payload:
+        $ref: '#/components/schemas/RideUpdated'
+      schemaFormat: application/vnd.aai.asyncapi+json;version=2.0.0
+      contentType: application/json
+  securitySchemes:
+    user_pass:
+      type: userPassword
+      description: Connect using Solace Basic Authentication 
+channels:
+  'taxinyc/ops/ride/updated/v1/{ride_status}/{driver_id}/{passenger_id}/{current_latitude}/{current_longitude}':
+    description: This dynamic channel is used for apps to send/receive RideUpdated events 
+    parameters:
+      ride_status:
+        schema:
+          $ref: '#/components/schemas/RideUpdated/properties/ride_status'
+        location: $message.payload#/ride_status
+      driver_id:
+        schema:
+          $ref: '#/components/schemas/RideUpdated/properties/driver/properties/driver_id'
+        location: $message.payload#/driver/driver_id
+      passenger_id:
+        schema:
+          $ref: '#/components/schemas/RideUpdated/properties/passenger/properties/passenger_id'
+        location: $message.payload#/passenger/passenger_id
+      current_latitude:
+        schema:
+          $ref: '#/components/schemas/RideUpdated/properties/latitude'
+        location: $message.payload#/latitude
+      current_longitude:
+        schema:
+          $ref: '#/components/schemas/RideUpdated/properties/longitude'
+        location: $message.payload#/longitude
+    subscribe:
+      message:
+        $ref: '#/components/messages/RideUpdated'
+servers:
+  production-smf:
+    url: tcp://taxi.messaging.solace.cloud:55555
+    protocol: smf
+    description: Connect using SMF.
+    x-message-vpn: nyc-modern-taxi
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis
+  production-secured-smf:
+    url: tcps://taxi.messaging.solace.cloud:55443
+    protocol: smf
+    description: Connect using Secured SMF.
+    x-message-vpn: nyc-modern-taxi
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis
+  production-secured-web-messaging-smf:
+    url: wss://taxi.messaging.solace.cloud:443
+    protocol: wss
+    description: Connect using SMF with Secured Solace Web Messaging.
+    x-message-vpn: nyc-modern-taxi
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis
+  production-secured-mqtt:
+    url: ssl://taxi.messaging.solace.cloud:8883
+    protocol: mqtt
+    description: Connect using secured MQTT.
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis
+  production-secured-mqtt-websockets:
+    url: wss://taxi.messaging.solace.cloud:8443
+    protocol: wss
+    description: Connect using secured MQTT over Websockets.
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis
+  production-secured-rest-messaging:
+    url: https://taxi.messaging.solace.cloud:9443
+    protocol: https
+    description: Connect using Solace REST Messaging.
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis
+  production-secured-amqp:
+    url: amqps://taxi.messaging.solace.cloud:5671
+    protocol: amqps
+    description: Connect using Secured AMQP.
+    security:
+      - user_pass: []
+    variables:
+      username: 
+        default: public-taxi-user
+      password:
+        default: iliketaxis

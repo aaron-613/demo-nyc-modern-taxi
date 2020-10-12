@@ -7,3 +7,7 @@ java-taxi-gps-pub/.classpath
 java-taxi-gps-pub/.project
 java-taxi-gps-pub/.settings/
 java-taxi-gps-pub/bin/
+
+node_modules
+.DS_Store
+package-lock.json
