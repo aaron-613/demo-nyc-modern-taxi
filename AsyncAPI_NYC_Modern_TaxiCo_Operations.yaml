@@ -348,6 +348,8 @@ servers:
         default: public-taxi-user
       password:
         default: iliketaxis
+      msg_vpn:
+        default: nyc-modern-taxi
   production-secured-smf:
     url: tcps://taxi.messaging.solace.cloud:55443
     protocol: smf
@@ -360,6 +362,8 @@ servers:
         default: public-taxi-user
       password:
         default: iliketaxis
+      msg_vpn:
+        default: nyc-modern-taxi
   production-secured-web-messaging-smf:
     url: wss://taxi.messaging.solace.cloud:443
     protocol: wss
@@ -372,6 +376,8 @@ servers:
         default: public-taxi-user
       password:
         default: iliketaxis
+      msg_vpn:
+        default: nyc-modern-taxi
   production-secured-mqtt:
     url: ssl://taxi.messaging.solace.cloud:8883
     protocol: mqtt
