@@ -13,16 +13,16 @@
 
 ## Notes
 
-- `GpsGenerator` is main file, loads in route data, connects to Solace
+- `GpsGenerator` is main file, loads in route data from `src/main/resources/config/`, connects to Solace
 - Currently hardcoded for 100 simutaneous routes at updates every 5 seconds
    - ~ 20 msg/s
 - Currently using approximately 1400 fixed routes from Google PubSub taxi route dump
-- Currently randomizing Driver and Passenger details
+   - Have several hundred-thousand routes, so can expand in the future
+- Currently generating random Driver at startup and reused throughout, and random Passenger information for every single ride
    - Will be updating Drivers to use Microsoft Azure DB soon
 
-## Misc
+## Capabilities
 
-We're going to use singe-precision (`float` not `double`) to store internally the coordinates for the routes:
-https://sites.google.com/site/trescopter/Home/concepts/required-precision-for-gps-calculations
+- Publishes streaming GPS data on Solace (and MQTT) topics that look like: 
 
-Althgouh using `double` values for things like Ratings and Fare Amount, as JSON library does strange rounding/floating point stuff when using only `float`.  E.g. a rating of 3.27 becomes 3.26984719472374912 in the JSON message if using floats.
+
