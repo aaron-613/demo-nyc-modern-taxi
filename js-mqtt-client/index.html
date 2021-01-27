@@ -74,6 +74,7 @@
   // called when the client connects
   function onConnect() {
     writeToScreen("Connected. Requesting Client name...");
+    // this next subscription is magic for Solace... the broker replies with the (Solace) client name
     client.subscribe("$SYS/client/client-name");  // find out this Solace MQTT client's name
   }
 
