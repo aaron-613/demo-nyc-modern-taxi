@@ -130,7 +130,7 @@ public class Ride implements Runnable {
             // now, send the "response" or "reply"
             // topic = taxinyc/ops/ride/updated/v1/accepted/${driver_id}/${passenger_id}/${current_longitude}/${current_latitude}
             topicSb = new StringBuilder("taxinyc/ops/ride/updated/v1/accepted/");
-            point = route.coords.get(Math.min(5,route.coords.size()));  // up to 5 "ticks" away
+            point = route.coords.get(Math.min(5,route.coords.size()-1));  // up to 5 "ticks" away
             topicSb.append(String.format("%08d",driver.getId())).append('/')
                     .append(String.format("%08d",passenger.getId())).append('/')   // use the full-width, 8-char version
                     .append(String.format("%09.5f",point.x)).append('/')
