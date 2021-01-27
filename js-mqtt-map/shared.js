@@ -3,11 +3,11 @@
 */
 
   var deets = {
-    host: 'messaging.solace.cloud',
+    host: 'taxi.messaging.solace.cloud',
     port: 8443,
     ssl: true,
-    username: '',
-    password: ''
+    username: 'public-taxi',
+    password: 'iliketaxis'
   }
 
 /*

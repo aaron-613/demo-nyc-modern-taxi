@@ -32,7 +32,7 @@
       padding: 10px;
       border: 1px solid #999;
       font-family: 'sans-serif';
-      line-height: 30px;
+      //line-height: 30px;
       padding-left: 10px;
     }
     #over_map_tr {
@@ -46,6 +46,14 @@
       font-family: 'sans-serif';
       line-height: 30px;
       padding-left: 10px;
+    }
+   #over_map_br {
+      position: absolute;
+      bottom: 22px;
+      right: 55px;
+      z-index: 99;
+      background-color: rgba(255, 255, 255, 0.95);
+      border: 1px solid #999;
     }
 
 
@@ -106,7 +114,6 @@
       }
     }, 1000);
 
-    var icon_bus_med_fault = { url: "bus_med_fault.png", anchor: { x: 16, y: 16 }};
     var icon_hail = { url: "gfx/hail.png", anchor: { x: 23, y: 61 }};
     var icon_start = { url: "gfx/start.png", anchor: { x: 21, y: 62 }};
     var icon_finish = { url: "gfx/finish.png", anchor: { x: 7, y: 62 }};
@@ -170,10 +177,14 @@
       var payload = taxi.payload;
       if (payload.ride_status == "pickup") {
         taxi.marker.setIcon(icon_start);
-        var passengerId = payload.passenger.passenger_id;
-console.log("removing request: "+passengerId);
-console.log(passengerId);
-        if (!requests.hasOwnProperty(passengerId)) return;
+        var passengerId = (""+payload.passenger.passenger_id).padStart(8,"0");
+//console.log("removing request: "+passengerId);
+//console.log(passengerId);
+        if (!requests.hasOwnProperty(passengerId)) {
+          // this might occur when first starting, if we didn't see the called "hail" event
+          console.log("I CANNOT FIND THIS PASSENTER?  "+passengerId)
+          return;
+        }
         requests[passengerId].setMap(null);
         delete requests[passengerId];
         return;
@@ -238,7 +249,7 @@ console.log(passengerId);
           parseRideUpdatedMessage(msg);
 	} else if (msg.destinationName.indexOf("taxinyc/ops/ride/called/v1") == 0) {
           parseRideCalledMessage(msg);
-          console.log(msg.destinationName);
+          //console.log(msg.destinationName);
         }
       } catch (e) {
         console.log("Had an issue with received message: topic="+msg.destinationName+", payload="+msg.payload);
@@ -258,10 +269,11 @@ console.log(passengerId);
       contentString = '<h2 id="firstHeading" class="firstHeading">Rider: '+payload.passenger.first_name+' '+payload.passenger.last_name+'</h2>' +
           '<div id="bodyContent"><p>' +
           '<b>Driver:</b> ' + payload.driver.first_name+' '+payload.driver.last_name + 
+		              '<br/><b>Meter:</b> $' + payload.meter_reading.toFixed(2) +
           '<br/><b>Current Position:</b> ' + payload.latitude.toFixed(4) + 'N,' + payload.longitude.toFixed(4) + 'W' +
           //'<b>Status:</b> ' + bus["payload"].status +
-          '<br/><b>Speed:</b> ' + payload.speed +
-          '<br/><b>Heading:</b> ' + payload.heading +
+          '<br/><b>Speed:</b> ' + payload.speed + ' MPH' +
+          '<br/><b>Heading:</b> ' + payload.heading + '&deg;'
           '</p>';
       // if (img != null) {
       //   contentString += '<p align="center"><img src="' + img + '"></p>';
@@ -390,6 +402,8 @@ console.log(passengerId);
   <div id="over_map_tr">
     <h1>Modern NYC Connected Taxi Demo</h1>
   </div>
+
+  <div id="over_map_tl"><img src="gfx/qr-code.png"/></div>
 
 </body>
 
