@@ -80,7 +80,9 @@
   // called when the client loses its connection
   function onConnectionLost(responseObject) {
     if (responseObject.errorCode !== 0) {
-      writeToScreen("onConnectionLost:"+responseObject.errorMessage);
+      writeToScreen("onConnectionLost: "+responseObject.errorMessage);
+    } else {
+      writeToScreen("Disconnected.");
     }
   }
 
@@ -89,10 +91,12 @@
     if (message.destinationName == "$SYS/client/client-name") {
       // special Solace MQTT feature to find out client name, used for Subscription Manager
       writeToScreen("Received Solace Client name.");
-      var person = prompt("Please enter your name to request a ride:", "Harry Potter");
+      var randomNames = ["Harry Potter", "Billy Joel", "Aaron Easter", "Joey Joe Joe Jr. Shabadoo", "Solly Otter"];
+      var person = prompt("Please enter your name to request a ride:", randomNames[Math.floor(Math.random() * randomNames.length)]);
       if (person == null || person == "") {
         // user cancelled the prompt
         alert("Ok, no ride for you.");
+        client.disconnect();
         return;
       }
       writeToScreen("Sending ride request...");
@@ -107,8 +111,10 @@
     if (!isPaused) {
       // only write to the screen if we're not paused; otherwise, throw away
       writeToScreen("<b>onMessageArrived:</b> topic='"+message.destinationName+"',&nbsp; payload='"+message.payloadString+"'");
-      var payload = JSON.parse(message.payloadString);
-      // do something else with decoded payload..?
+      if (message.payloadString.length > 1) {
+        var payload = JSON.parse(message.payloadString);
+        // do something else with decoded payload..?
+      }
     }
   }
 
