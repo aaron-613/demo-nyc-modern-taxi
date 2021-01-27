@@ -155,6 +155,7 @@ public enum GpsGenerator {
         properties.setProperty(JCSMPProperties.VPN_NAME,vpn);
         properties.setProperty(JCSMPProperties.USERNAME,user);
         properties.setProperty(JCSMPProperties.PASSWORD,pw);
+        properties.setProperty(JCSMPProperties.REAPPLY_SUBSCRIPTIONS, true);  // re-subscribe Direct subs after reconnect
         JCSMPChannelProperties cp = new JCSMPChannelProperties();
         cp.setReconnectRetries(-1);
         //cp.setCompressionLevel(9);  // disable if not using compressed port
