@@ -278,6 +278,7 @@ public enum GpsGenerator {
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"#"),JCSMPSession.WAIT_FOR_CONFIRM);
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+(char)3),JCSMPSession.WAIT_FOR_CONFIRM);
                                     //session.addSubscription(clientName,JCSMPFactory.onlyInstance().createTopic("taxinyc/ops/ride/updated/v1/*/*/"+p.getId()+"/"+(char)3),JCSMPSession.WAIT_FOR_CONFIRM);
+				    // this adds subscriptoins to the requesting client connection
                                     session.addSubscription(clientName,routeSub,JCSMPSession.WAIT_FOR_CONFIRM);
                                     session.addSubscription(clientName,reqSub,JCSMPSession.WAIT_FOR_CONFIRM);
                                 } catch (JCSMPException e) {
