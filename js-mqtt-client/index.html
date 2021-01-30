@@ -4,7 +4,7 @@
   <title>MQTT Taxi Client WebApp</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
   <style>
-    p {
+    p,ul,li {
       margin: 0px;
       font-family: "Lucida Console", "Inconsolata", monospace;
       font-size:90%;
@@ -44,6 +44,16 @@
   <button id="button" class="button" onClick="pause();">Pause</button>
 </div>
 <h2>MQTT NYC Modern Taxi - Demo Client app</h2>
+<p>OR DO IT YOURSELF!  Connect either via:</p>
+<ul>
+<li>MQTT:&nbsp;&nbsp;&nbsp;&nbsp; taxi.messaging.solace.cloud:8883</li>
+<li>MQTT-WS:&nbsp; taxi.messaging.solace.cloud:8443</li>
+<li>SMF:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; taxi.messaging.solace.cloud:55443</li>
+<li>SMF-WS:&nbsp;&nbsp; taxi.messaging.solace.cloud:443</li>
+<li>Username: taxi-client</li>
+<li>Password: hailtaxi</li>
+</ul>
+<p>Publish one message to topic "taxinyc/ops/ride/called/demo", with JSON payload containing "name" (the user's name) and "solClientName" (the Solace client-name, determined after connecting).</p>
 <br/>
 <script>
 
@@ -52,8 +62,8 @@
   var isPaused = false;
   var host = "taxi.messaging.solace.cloud";
   var port = 8443;
-  var username = "public-taxi";
-  var password = "iliketaxis";
+  var username = "taxi-client";
+  var password = "hailtaxi";
   var useSSL = true; 
   var client_id = ""+(Math.random() + 1).toString(36).substring(2,10);  // 8 "random" [0-9a-z]
   client = new Paho.MQTT.Client(host,Number(port),client_id);
