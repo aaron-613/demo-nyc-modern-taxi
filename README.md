@@ -17,7 +17,7 @@ This demo has several parts.  They are itemized below.
 
 The "backend" publisher that is generating all of the taxi GPS positions.  This data is based on the data of taxi rides release by NYC in 2019 (provide links).  The application uses Solace JCSMP API for communication over Solace.
 
-The publisher also listens to "ride called" requests, and issues new Rides. This capability is provided by the Subscription Manager feature of Solace PubSub+.
+The publisher also listens to "ride called" requests, and issues new Rides. This capability is provided by the Subscription Manager feature of Solace PubSub+, and will dynamically add appropriate subscriptions to new client connections via Solace On-Behalf-Of capability. This request is initiated by the client publishing a message to `taxinyc/ops/ride/called/demo`.  See the `js-mqtt-client` app for more details.
 
 
 
@@ -26,6 +26,8 @@ The publisher also listens to "ride called" requests, and issues new Rides. This
 A simple JavaScript map application using Google Maps to visualize where all of the various taxis are. Uses Eclipse Paho MQTT libraries for communication over Solace.
 
 ![Screenshot](https://github.com/aaron-613/demo-nyc-modern-taxi/blob/master/map.jpg "Screenshott")
+
+
 
 ## js-mqtt-client
 
