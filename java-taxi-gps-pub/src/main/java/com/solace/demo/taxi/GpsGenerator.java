@@ -327,11 +327,6 @@ public enum GpsGenerator {
 
 
     public static void main(String... args) throws JCSMPException, IOException {
-        
-        String name = "aaron   ";
-        System.out.println(name.split(" ",3).length);
-        
-        
         if (args.length < 3) {
             System.out.println("Not enough args");
             System.out.println("Usage: GpsGenerator <IP or hostname> <vpn> <user> [password]");
