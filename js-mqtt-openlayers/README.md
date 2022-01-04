@@ -9,7 +9,7 @@ You can find it running here: https://sg.solace.com/taxi-ol/
 
 Start with this: https://openlayers.org/en/latest/doc/tutorials/bundle.html
 
-You're going to need `git` installed, and a newish version of `npm`.
+You're going to need `node` and `git` installed, and a newish version of `npm`.
 
 Do:
 ```
