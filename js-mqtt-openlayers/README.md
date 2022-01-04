@@ -17,3 +17,11 @@ npx create-ol-app map
 
 Most of the brains of this thing are in the `main.js`.  `shared.js` is where it connects to.
 
+
+
+## Running
+
+If you do `npm start` that will start a test dev webserver on port 3000, and you can see the map in action!
+
+
+![blah](map-overview.png)
