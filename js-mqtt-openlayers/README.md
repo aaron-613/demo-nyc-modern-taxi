@@ -13,6 +13,16 @@ npx create-ol-app map
 
 - That will make a starter project in a new folder called `map`.
 - Then copy all the files in this folder into that `map` folder (overwrite them).
+- Or, better yet, (until I figure out a better way to do this):
+```
+rm map/index.html
+rm map/main.js
+ln index.html map
+ln main.js map
+ln shared.js map
+ln favicon.ico map
+ln icon.png map
+```
 
 
 Most of the brains of this thing are in the `main.js`.  `shared.js` is where it connects to.
