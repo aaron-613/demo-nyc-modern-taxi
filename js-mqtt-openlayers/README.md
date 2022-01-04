@@ -1,6 +1,11 @@
 
 # OpenLayers free map version
 
+This is a partially-completed version of the Solace Taxi NYC demo that uses OpenLayers (https://openlayers.org/) instead of Google Maps.
+
+You can find it running here: https://sg.solace.com/taxi-ol/
+
+## Building / Setup
 
 Start with this: https://openlayers.org/en/latest/doc/tutorials/bundle.html
 
@@ -43,3 +48,8 @@ If you do `npm start` that will start a test dev webserver on port 3000, and you
 - taxi icon rotation / scaling / opacity fade-out when done
 - ride hailed / started / ended icons
 - popup info box
+
+## Build for Dist
+
+if you do `npm run build`, it's supposed to build you a deployable version. Except it misses some included files and the paths are wrong, so I have to figure that out first. The version running at https://sg.solace.com/taxi-ol has had some tweaks made.
+
