@@ -25,3 +25,11 @@ If you do `npm start` that will start a test dev webserver on port 3000, and you
 
 
 ![blah](map-overview.png)
+
+
+
+## TODO
+
+- taxi icon rotation / scaling / opacity fade-out when done
+- ride hailed / started / ended icons
+- popup info box
